@@ -733,6 +733,7 @@ canvas{width:100%!important;}
       <div style="display:flex;flex-direction:column;gap:.55rem">
         <div id="dash-ahorros"></div>
         <div style="border-top:1px solid var(--border);padding-top:.55rem" id="dash-inversiones"></div>
+        <div style="border-top:1px solid var(--border);padding-top:.55rem" id="goal-prog"></div>
       </div>
     </div>
     <div class="card"><div class="ct">Gastos Fijos del Mes</div><div id="dash-gf"></div></div>
@@ -1693,10 +1694,15 @@ function delTx(id) {
   const tx = S.transactions.find(t => t.id === id);
   if (!tx) return;
   S.transactions = S.transactions.filter(t => t.id !== id);
-  persist(); refreshAll();
+  try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+  schedSave();
+  renderMov(); renderDash(); renderHeaderSummary();
   notify('Movimiento eliminado', () => {
     S.transactions.unshift(tx);
-    persist(); refreshAll(); notify('Movimiento restaurado');
+    try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+    schedSave();
+    renderMov(); renderDash(); renderHeaderSummary();
+    notify('Movimiento restaurado');
   });
 }
 
@@ -1823,7 +1829,7 @@ function editTx(id) {
   // Find the element in the movimientos panel specifically
   const txlEl = document.getElementById('full-txl');
   if (!txlEl) return;
-  const el = txlEl.querySelector('#txi-' + id);
+  const el = txlEl.querySelector('[id="txi-' + id + '"]');
   if (el) el.outerHTML = txHtmlFull(t, true);
 }
 
@@ -2037,7 +2043,9 @@ function renderDashGF() {
 
 function renderGoalProg() {
   const el = document.getElementById('goal-prog');
-  if (!S.goals.length) { el.innerHTML = '<div class="empty">Sin metas aún</div>'; return; }
+  if (!el) return;
+  if (!S.goals.length) { el.style.display = 'none'; return; }
+  el.style.display = '';
   el.innerHTML = S.goals.map(g => {
     const pct = Math.min(Math.round(g.saved / g.target * 100), 100);
     return `<div class="pi">
@@ -2077,6 +2085,7 @@ function renderMov() {
 // ═══════════════════════════════════════════════
 function renderMetas() {
   const el = document.getElementById('goals-list');
+  if (!el) return;
   if (!S.goals.length) { el.innerHTML = '<div class="empty">Aún no tienes metas</div>'; }
   else {
     el.innerHTML = S.goals.map(g => {
@@ -2620,6 +2629,18 @@ function addInversion() {
   notify('Compra registrada');
 }
 
+function delInvGroup(groupId, sym) {
+  if (!confirm('Eliminar todas las compras de ' + sym + '?')) return;
+  const group = S.inversiones.find(g => g.id === groupId);
+  if (!group) return;
+  S.inversiones = S.inversiones.filter(g => g.id !== groupId);
+  persist(); renderInversiones(); refreshAll();
+  notify('Grupo ' + sym + ' eliminado', () => {
+    S.inversiones.push(group);
+    persist(); renderInversiones(); refreshAll(); notify('Restaurado');
+  });
+}
+
 function delCompra(groupId, compraId) {
   const group = S.inversiones.find(g => g.id === groupId);
   if (!group) return;
@@ -2728,7 +2749,7 @@ function renderInversiones() {
         <div class="inv-name">${g.name || g.sym}</div>
         <span class="inv-type">${g.tipo}</span>
         <span class="inv-diff ${dcls}">${s}${p.toFixed(1)}%</span>
-        <button class="inv-del" onclick="if(confirm('Eliminar todo el grupo ${g.sym}?')){ S.inversiones=S.inversiones.filter(x=>x.id!==${g.id}); persist(); renderInversiones(); refreshAll(); }">✕</button>
+        <button class="inv-del" onclick="delInvGroup(${g.id},'${g.sym}')">✕</button>
       </div>
       <div class="inv-nums">
         <div class="inv-num">
@@ -3378,7 +3399,6 @@ function migrateData(data) {
   if (!d.ahorros)     d.ahorros = { saldo: 0, movimientos: [] };
   if (!d.inversiones) d.inversiones = [];
   // Ensure watchlist exists
-  if (!d.watchlist) d.watchlist = ['crypto:bitcoin:BTC','crypto:ethereum:ETH','stock:AAPL:AAPL','stock:TSLA:TSLA','stock:NVDA:NVDA'];
   if (!d.watchlist)   d.watchlist = ['crypto:bitcoin:BTC','crypto:ethereum:ETH','stock:AAPL:AAPL','stock:TSLA:TSLA','stock:NVDA:NVDA'];
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
