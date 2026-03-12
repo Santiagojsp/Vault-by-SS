@@ -177,6 +177,15 @@ header{display:flex;align-items:center;justify-content:space-between;
 .cfg-row{display:flex;align-items:center;justify-content:space-between;padding:.7rem 0;
   border-bottom:1px solid var(--border);gap:1rem;}
 .cfg-row:last-child{border-bottom:none;}
+.budget-bar-wrap{margin-top:.35rem;height:5px;background:var(--surface3);border-radius:99px;overflow:hidden;}
+.budget-bar-fill{height:100%;border-radius:99px;transition:width .4s;}
+.budget-bar-fill.ok{background:var(--accent);}
+.budget-bar-fill.warn{background:#f59e0b;}
+.budget-bar-fill.over{background:#ef4444;}
+.cat-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .55rem;border-radius:99px;background:var(--surface3);font-size:.72rem;cursor:default;}
+.cat-chip .chip-del{cursor:pointer;opacity:.5;font-size:.8rem;line-height:1;}
+.cat-chip .chip-del:hover{opacity:1;}
+.note-field{font-size:.78rem;color:var(--muted);margin-top:.15rem;font-style:italic;}
 .cfg-label{font-size:.82rem;}
 .cfg-sub{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
 /* AHORROS & INVERSIONES */
@@ -755,6 +764,13 @@ canvas{width:100%!important;}
   <!-- KPIs históricos -->
   <div class="kpi-row" id="an-kpi" style="margin-bottom:1rem"></div>
 
+  <!-- Presupuesto por categoría -->
+  <div id="budget-widget" style="margin-bottom:1rem;display:none">
+    <div class="card">
+      <div class="ct">Presupuesto del Mes</div>
+      <div id="budget-bars" style="display:flex;flex-direction:column;gap:.55rem"></div>
+    </div>
+  </div>
   <!-- Charts -->
   <div class="g2">
     <div class="card"><div class="ct">Ingresos vs Egresos (6 meses)</div><div class="chart-wrap" style="height:210px"><canvas id="ch-main"></canvas></div></div>
@@ -770,7 +786,7 @@ canvas{width:100%!important;}
 <div class="panel" id="panel-movimientos">
   <div class="card" style="margin-bottom:1rem">
     <div class="ct">Registrar Movimiento</div>
-    <div class="fg fg-tx-top">
+    <div class="fg fg-tx-top" style="grid-template-columns:105px 1fr 145px 160px 1fr;">
       <div><label>Tipo</label>
         <select id="tx-type">
           <option value="income">↑ Ingreso</option>
@@ -779,13 +795,9 @@ canvas{width:100%!important;}
       <div><label>Descripción</label><input type="text" id="tx-desc" placeholder="Ej: Salario, Mercado…"></div>
       <div><label>Fecha</label><input type="date" id="tx-date"></div>
       <div><label>Categoría</label>
-        <select id="tx-cat">
-          <option>Salario</option><option>Freelance</option><option>Inversión</option>
-          <option>Otro ingreso</option><option>Alimentación</option><option>Vivienda</option>
-          <option>Transporte</option><option>Salud</option><option>Educación</option>
-          <option>Entretenimiento</option><option>Ropa</option><option>Servicios</option>
-          <option>Otro gasto</option>
-        </select></div>
+        <select id="tx-cat" onchange="onCatChange(this.value)"></select></div>
+      <div style="grid-column:span 2"><label>Nota <span style="font-size:.7rem;color:var(--muted)">(opcional)</span></label>
+        <input type="text" id="tx-note" placeholder="Referencia, número de factura…" maxlength="120"></div>
     </div>
     <div class="fg fg-tx-bot">
       <div><label>Moneda entrada</label>
@@ -804,13 +816,16 @@ canvas{width:100%!important;}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.95rem;flex-wrap:wrap;gap:.5rem">
       <div class="ct" style="margin-bottom:0">Movimientos del Mes</div>
       <div style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
-        <input type="text" id="fsearch" placeholder="Buscar…" oninput="renderMov()" style="width:140px;font-size:.72rem;padding:.26rem .5rem">
+        <input type="text" id="fsearch" placeholder="Buscar…" oninput="renderMov()" style="width:130px;font-size:.72rem;padding:.26rem .5rem">
         <select id="ft" onchange="renderMov()" style="width:auto;font-size:.72rem;padding:.26rem .5rem">
           <option value="all">Todos</option><option value="income">Ingresos</option><option value="expense">Gastos</option>
         </select>
         <select id="fc" onchange="renderMov()" style="width:auto;font-size:.72rem;padding:.26rem .5rem">
           <option value="all">Todas las categorías</option>
         </select>
+        <input type="date" id="fdate-from" onchange="renderMov()" title="Desde" style="font-size:.72rem;padding:.26rem .4rem;width:130px">
+        <input type="date" id="fdate-to"   onchange="renderMov()" title="Hasta" style="font-size:.72rem;padding:.26rem .4rem;width:130px">
+        <button id="fdate-clear" onclick="clearDateFilter()" title="Limpiar fechas" style="display:none;font-size:.72rem;padding:.26rem .5rem;background:var(--surface3);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted)">✕ fechas</button>
       </div>
     </div>
     <div class="txl" id="full-txl" style="max-height:490px"></div>
@@ -858,18 +873,42 @@ canvas{width:100%!important;}
     </div>
   </div>
   <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Categorías personalizadas</div>
+    <div class="cfg-row" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+      <div style="display:flex;gap:.45rem;width:100%">
+        <input type="text" id="new-cat-name" placeholder="Nombre categoría" style="flex:1;font-size:.8rem">
+        <select id="new-cat-type" style="width:120px;font-size:.8rem">
+          <option value="expense">Gasto</option>
+          <option value="income">Ingreso</option>
+        </select>
+        <select id="new-cat-icon" style="width:80px;font-size:.8rem">
+          <option>🏷️</option><option>🛍️</option><option>🎯</option><option>🐾</option>
+          <option>⚽</option><option>✈️</option><option>🍔</option><option>💊</option>
+          <option>🔧</option><option>📦</option><option>💡</option><option>🎵</option>
+          <option>🏋️</option><option>🌿</option><option>🏦</option><option>💻</option>
+        </select>
+        <button class="btn btn-acc btn-sm" onclick="addCustomCat()">+ Añadir</button>
+      </div>
+      <div id="custom-cats-list" style="display:flex;flex-wrap:wrap;gap:.35rem;min-height:24px"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Presupuesto mensual</div>
+    <div class="cfg-row" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+      <p style="font-size:.78rem;color:var(--muted);margin:0">Define un límite mensual por categoría de gasto. Se mostrará una barra de progreso en el Dashboard.</p>
+      <div style="display:flex;gap:.45rem;width:100%;flex-wrap:wrap">
+        <select id="bgt-cat" style="flex:1;min-width:130px;font-size:.8rem"></select>
+        <input type="number" id="bgt-amt" placeholder="Límite USD" min="0" step="1" style="width:120px;font-size:.8rem">
+        <button class="btn btn-acc btn-sm" onclick="setBudget()">Guardar</button>
+      </div>
+      <div id="bgt-list" style="width:100%"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
     <div class="ct">Exportar a CSV</div>
     <div class="cfg-row">
-      <div><div class="cfg-label">Movimientos</div><div class="cfg-sub">Todos los ingresos y gastos registrados</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="exportCSV('movimientos')">⬇ CSV</button>
-    </div>
-    <div class="cfg-row">
-      <div><div class="cfg-label">Gastos Fijos</div><div class="cfg-sub">Lista de gastos fijos configurados</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="exportCSV('gastos-fijos')">⬇ CSV</button>
-    </div>
-    <div class="cfg-row">
-      <div><div class="cfg-label">Inversiones</div><div class="cfg-sub">Portafolio y detalle de compras</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="exportCSV('inversiones')">⬇ CSV</button>
+      <div><div class="cfg-label">Reporte completo</div><div class="cfg-sub">Movimientos, Gastos Fijos, Inversiones + Resumen</div></div>
+      <button class="btn btn-acc btn-sm" onclick="exportXLSX()">⬇ Excel</button>
     </div>
   </div>
   <div class="card">
@@ -1229,6 +1268,7 @@ canvas{width:100%!important;}
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script src="https://apis.google.com/js/api.js" async></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 //  STORAGE
@@ -1654,7 +1694,7 @@ function goTab(t) {
   if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
   if (t === 'gastos-fijos') renderGastosFijos();
   if (t === 'inversiones')  { renderInversiones(); renderWatchlistTags(); if(!Object.keys(mktData).length) refreshMarket(); }
-  if (t === 'config')       {}
+  if (t === 'config')       { refreshCatSelects(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -1667,6 +1707,7 @@ function addTx() {
   const date   = document.getElementById('tx-date').value;
   const cat    = document.getElementById('tx-cat').value;
 
+  const note   = (document.getElementById('tx-note')?.value || '').trim();
   if (!desc || !rawAmt || rawAmt <= 0 || !date) { notify('Completa todos los campos'); return; }
 
   const rate = activeRate();
@@ -1683,7 +1724,7 @@ function addTx() {
   }
 
   S.transactions.unshift({
-    id: Date.now(), type, desc, date, cat,
+    id: Date.now(), type, desc, date, cat, note,
     amountUSD, amountBS, rateUsed,
     rateKey: activeRateKey,
     originalCurrency: txCur
@@ -1696,6 +1737,7 @@ function addTx() {
   document.getElementById('tx-desc').value = '';
   document.getElementById('tx-amt').value  = '';
   document.getElementById('tx-date').value = new Date().toISOString().slice(0, 10);
+  const noteEl = document.getElementById('tx-note'); if (noteEl) noteEl.value = '';
   document.getElementById('tx-preview').innerHTML = '—';
   updRateStripInfo();
 
@@ -1791,6 +1833,7 @@ function txHtml(t, editMode = false) {
       <div class="txi-ico ${t.type}">${icon}</div>
       <input id="edit-desc-${t.id}" value="${t.desc.replace(/"/g,'&quot;')}" style="flex:1;min-width:100px;font-size:.8rem;padding:.3rem .5rem">
       <input id="edit-amt-${t.id}"  type="number" value="${t.amountUSD}" step="0.01" min="0" style="width:90px;font-size:.8rem;padding:.3rem .5rem">
+      <input id="edit-note-${t.id}" value="${(t.note||'').replace(/"/g,'&quot;')}" placeholder="Nota…" style="width:100%;font-size:.78rem;padding:.25rem .5rem;margin-top:.2rem;grid-column:1/-1">
       <div style="display:flex;gap:.35rem;margin-left:auto">
         <button class="btn btn-acc btn-sm" onclick="saveTxEdit(${t.id})">Guardar</button>
         <button class="btn btn-ghost btn-sm" onclick="editingTxId=null;renderMov()">Cancelar</button>
@@ -1803,6 +1846,7 @@ function txHtml(t, editMode = false) {
     <div class="txi-info">
       <div class="txi-desc">${t.desc}</div>
       <div class="txi-cat">${t.cat}</div>
+      ${t.note ? `<div class="note-field">📝 ${t.note}</div>` : ''}
       ${rateBadge}
     </div>
     <div class="txi-amt">
@@ -1830,6 +1874,7 @@ function txHtmlFull(t, editMode = false) {
     <div class="txi-info">
       <div class="txi-desc">${t.desc}</div>
       <div class="txi-cat">${t.cat}</div>
+      ${t.note ? `<div class="note-field">📝 ${t.note}</div>` : ''}
       ${rateBadge}
     </div>
     <div class="txi-amt">
@@ -1852,12 +1897,14 @@ function saveTxEdit(id) {
   if (!t) { renderMov(); return; }
   const descEl = document.getElementById('edit-desc-' + id);
   const amtEl  = document.getElementById('edit-amt-'  + id);
+  const noteEl = document.getElementById('edit-note-' + id);
   if (!descEl || !amtEl) { renderMov(); return; }
   const newDesc = descEl.value.trim();
   const newAmt  = parseFloat(amtEl.value);
   if (!newDesc || !newAmt || newAmt <= 0) { notify('Datos inválidos'); return; }
   t.desc      = newDesc;
   t.amountUSD = newAmt;
+  if (noteEl !== null) t.note = noteEl.value.trim();
   if (t.rateUsed) t.amountBS = newAmt * t.rateUsed;
   editingTxId = null;
   try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
@@ -1942,6 +1989,7 @@ function renderDash() {
   renderDashGF();
   renderDashAhorros();
   renderDashInversiones();
+  renderBudgetWidget();
   renderHeaderSummary();
   updateGFTabBadge();
 }
@@ -2087,10 +2135,17 @@ function renderMov() {
     cs.innerHTML = '<option value="all">Todas las categorías</option>' +
       cats.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
   }
-  let txs = mTxs().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const dateFrom = document.getElementById('fdate-from')?.value || '';
+  const dateTo   = document.getElementById('fdate-to')?.value   || '';
+  const clearBtn = document.getElementById('fdate-clear');
+  if (clearBtn) clearBtn.style.display = (dateFrom || dateTo) ? 'inline-flex' : 'none';
+  let txs = (dateFrom || dateTo)
+    ? S.transactions.filter(t => (!dateFrom || t.date >= dateFrom) && (!dateTo || t.date <= dateTo))
+    : mTxs();
+  txs = txs.sort((a, b) => new Date(b.date) - new Date(a.date));
   if (ft !== 'all') txs = txs.filter(t => t.type === ft);
   if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
-  if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search));
+  if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search) || (t.note||'').toLowerCase().includes(search));
   document.getElementById('full-txl').innerHTML = txs.length
     ? txs.map(t => txHtmlFull(t, t.id === editingTxId)).join('')
     : `<div class="empty">${search ? 'Sin resultados para "' + search + '"' : 'Sin movimientos para este filtro'}</div>`;
@@ -3069,6 +3124,7 @@ function refreshAll() {
   if (t === 'gastos-fijos') renderGastosFijos();
   if (t === 'inversiones')  renderInversiones();
   if (t === 'dashboard')    renderAnalisis();
+  if (t === 'config')       refreshCatSelects();
 }
 
 // ═══════════════════════════════════════════════
@@ -3251,6 +3307,7 @@ async function loadFromDrive() {
     setSyncStatus('err', 'Error al cargar Drive: ' + e.message);
   }
   refreshAll();
+  refreshCatSelects();
   renderMetas();
 }
 
@@ -3386,78 +3443,300 @@ async function manualSave(btn) {
 }
 
 // ── Export / Import ──
-function exportCSV(type) {
-  const esc = v => {
-    const s = (v === null || v === undefined) ? '' : String(v);
-    return s.includes(',') || s.includes('"') || s.includes('\n')
-      ? '"' + s.replace(/"/g, '""') + '"' : s;
+function exportXLSX() {
+  if (typeof XLSX === 'undefined') { notify('Cargando librería, intenta de nuevo'); return; }
+  const wb = XLSX.utils.book_new();
+
+  // ── Paleta ──
+  const GREEN  = '388E3C';
+  const LGREEN = 'C8E6C9';
+  const WHITE  = 'FFFFFF';
+  const BLACK  = '000000';
+  const GRAY1  = 'F5F5F5';
+  const RED    = 'C62828';
+  const BLUE   = '1565C0';
+  const MUTED  = '757575';
+
+  // ── Style helpers ──
+  const hdrStyle = () => ({
+    font:      { bold: true, color: { rgb: WHITE }, sz: 9 },
+    fill:      { fgColor: { rgb: GREEN } },
+    border:    { bottom: { style: 'thin', color: { rgb: WHITE } } },
+    alignment: { horizontal: 'center', vertical: 'center', wrapText: true }
+  });
+  const dataStyle = (bg, color = BLACK, bold = false, numFmt, alignH) => ({
+    font:      { color: { rgb: color }, sz: 9, bold },
+    fill:      { fgColor: { rgb: bg || WHITE } },
+    border:    { top: { style: 'thin', color: { rgb: 'E0E0E0' } }, bottom: { style: 'thin', color: { rgb: 'E0E0E0' } }, left: { style: 'thin', color: { rgb: 'E0E0E0' } }, right: { style: 'thin', color: { rgb: 'E0E0E0' } } },
+    alignment: { vertical: 'center', horizontal: alignH || (numFmt ? 'right' : 'left') },
+    numFmt:    numFmt || 'General'
+  });
+  const totStyle = (color = BLACK) => ({
+    font:      { bold: true, color: { rgb: color }, sz: 9 },
+    fill:      { fgColor: { rgb: LGREEN } },
+    border:    { top: { style: 'medium', color: { rgb: GREEN } } },
+    alignment: { horizontal: 'right', vertical: 'center' },
+    numFmt:    '#,##0.00'
+  });
+  const totLabelStyle = (color = BLACK) => ({
+    font:      { bold: true, color: { rgb: color }, sz: 9 },
+    fill:      { fgColor: { rgb: LGREEN } },
+    border:    { top: { style: 'medium', color: { rgb: GREEN } } },
+    alignment: { horizontal: 'left', vertical: 'center' }
+  });
+  const emptyTotStyle = () => ({
+    fill:   { fgColor: { rgb: LGREEN } },
+    border: { top: { style: 'medium', color: { rgb: GREEN } } }
+  });
+
+  const sc = (ws, r, c, v, style, t) => {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    ws[addr] = { v, t: t || (typeof v === 'number' ? 'n' : 's'), s: style };
   };
-  const row = cols => cols.map(esc).join(',');
-  const dl  = (csv, name) => {
-    const bom = '\uFEFF'; // UTF-8 BOM para Excel
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' }));
-    a.download = name + '-' + new Date().toISOString().slice(0, 10) + '.csv';
-    a.click();
+
+  const addTitleBlock = (ws, title, ncols) => {
+    // Row 0: big title
+    const tAddr = XLSX.utils.encode_cell({ r: 0, c: 0 });
+    ws[tAddr] = { v: title, t: 's', s: {
+      font: { bold: true, sz: 15, color: { rgb: GREEN } },
+      alignment: { horizontal: 'left', vertical: 'center' }
+    }};
+    ws['!merges'] = ws['!merges'] || [];
+    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: ncols - 1 } });
+    // Row 1: subtitle
+    const sAddr = XLSX.utils.encode_cell({ r: 1, c: 0 });
+    ws[sAddr] = { v: 'Vault.  ·  Exportado ' + new Date().toLocaleDateString('es-VE'), t: 's', s: {
+      font: { sz: 8, color: { rgb: MUTED }, italic: true },
+      alignment: { horizontal: 'left', vertical: 'center' }
+    }};
+    ws['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: ncols - 1 } });
   };
 
-  if (type === 'movimientos') {
-    const header = row(['Fecha','Tipo','Descripcion','Categoria','Monto USD','Monto Bs','Tasa','Tasa Key','Moneda Original']);
-    const body = [...S.transactions]
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .map(t => row([
-        t.date,
-        t.type === 'income' ? 'Ingreso' : 'Egreso',
-        t.desc,
-        t.cat,
-        t.amountUSD != null ? t.amountUSD.toFixed(2) : '',
-        t.amountBS  != null ? t.amountBS.toFixed(2)  : '',
-        t.rateUsed  != null ? t.rateUsed.toFixed(2)  : '',
-        t.rateKey   || '',
-        t.originalCurrency || 'USD'
-      ]));
-    dl([header, ...body].join('\n'), 'vault-movimientos');
-    notify('CSV de movimientos exportado');
-  }
+  const autoWidth = (ws, dataRows, minW = 8, maxW = 40) => {
+    if (!dataRows.length) return;
+    const ncols = dataRows[0].length;
+    ws['!cols'] = Array.from({ length: ncols }, (_, ci) =>
+      ({ wch: Math.min(maxW, Math.max(minW, ...dataRows.map(r => String(r[ci] ?? '').length + 2))) })
+    );
+  };
 
-  else if (type === 'gastos-fijos') {
-    const header = row(['Nombre','Monto USD','Dia Vencimiento','Categoria','Icono','Moneda']);
-    const body = S.gastosFijos.map(g => row([
-      g.name,
-      g.monto != null ? g.monto.toFixed(2) : '',
-      g.dia   != null ? g.dia : '',
-      g.cat   || '',
-      g.ico   || '',
-      g.cur   || 'USD'
-    ]));
-    dl([header, ...body].join('\n'), 'vault-gastos-fijos');
-    notify('CSV de gastos fijos exportado');
-  }
+  // ════════════════════════════════════════════
+  // HOJA 1 — MOVIMIENTOS
+  // ════════════════════════════════════════════
+  const txsSorted = [...S.transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const movHdr  = ['Fecha','Tipo','Descripción','Categoría','Monto USD','Monto Bs.','Tasa','Tasa Key','Moneda'];
+  const movData = txsSorted.map(t => [
+    t.date,
+    t.type === 'income' ? 'Ingreso' : 'Egreso',
+    t.desc, t.cat,
+    t.amountUSD ?? 0, t.amountBS ?? 0, t.rateUsed ?? 0,
+    t.rateKey || '', t.originalCurrency || 'USD'
+  ]);
 
-  else if (type === 'inversiones') {
-    // Una fila por compra, con columnas del grupo repetidas
-    const header = row(['Activo','Nombre','Tipo','Fecha Compra','Monto USD','Precio Unitario','Unidades','Notas']);
-    const body = [];
-    S.inversiones.forEach(g => {
-      if (!g.compras || !g.compras.length) {
-        body.push(row([g.sym, g.name, g.tipo, '', '', '', '', '']));
-      } else {
-        g.compras.forEach(c => body.push(row([
-          g.sym,
-          g.name,
-          g.tipo,
-          c.fecha || '',
-          c.monto  != null ? c.monto.toFixed(2)  : '',
-          c.precio != null ? c.precio.toFixed(4)  : '',
-          c.units  != null ? c.units.toFixed(6)   : '',
-          c.desc   || ''
-        ])));
-      }
+  const wsMov = {};
+  wsMov['!rows'] = [{ hpt: 28 }, { hpt: 13 }, { hpt: 6 }, { hpt: 20 }];
+  addTitleBlock(wsMov, '📊 Movimientos', movHdr.length);
+  movHdr.forEach((h, c) => sc(wsMov, 3, c, h, hdrStyle()));
+
+  let totInc = 0, totExp = 0, totBs = 0;
+  movData.forEach((row, ri) => {
+    const bg      = ri % 2 === 0 ? WHITE : GRAY1;
+    const isInc   = row[1] === 'Ingreso';
+    const amtColor = isInc ? '2E7D32' : RED;
+    sc(wsMov, 4+ri, 0, row[0], dataStyle(bg));
+    sc(wsMov, 4+ri, 1, row[1], dataStyle(bg, amtColor, true));
+    sc(wsMov, 4+ri, 2, row[2], dataStyle(bg));
+    sc(wsMov, 4+ri, 3, row[3], dataStyle(bg));
+    sc(wsMov, 4+ri, 4, row[4], dataStyle(bg, amtColor, false, '#,##0.00'));
+    sc(wsMov, 4+ri, 5, row[5], dataStyle(bg, BLACK, false, '#,##0.00'));
+    sc(wsMov, 4+ri, 6, row[6], dataStyle(bg, BLACK, false, '#,##0.00'));
+    sc(wsMov, 4+ri, 7, row[7], dataStyle(bg));
+    sc(wsMov, 4+ri, 8, row[8], dataStyle(bg, BLACK, false, null, 'center'));
+    if (isInc) totInc += row[4]; else totExp += row[4];
+    totBs += (row[5] || 0);
+  });
+
+  const mTot1 = 4 + movData.length;
+  const mTot2 = mTot1 + 1;
+  const bal   = totInc - totExp;
+  sc(wsMov, mTot1, 0, '▲ Ingresos: $' + totInc.toFixed(2), totLabelStyle('2E7D32'));
+  for (let c = 1; c < movHdr.length; c++) sc(wsMov, mTot1, c, '', emptyTotStyle());
+  sc(wsMov, mTot2, 0, '▼ Egresos:  $' + totExp.toFixed(2), totLabelStyle(RED));
+  sc(wsMov, mTot2, 4, bal, totStyle(bal >= 0 ? '2E7D32' : RED));
+  for (let c = 1; c <= 3; c++)             sc(wsMov, mTot2, c, '', emptyTotStyle());
+  for (let c = 5; c < movHdr.length; c++)  sc(wsMov, mTot2, c, '', emptyTotStyle());
+
+  autoWidth(wsMov, [movHdr, ...movData]);
+  wsMov['!cols'][2] = { wch: 30 }; // Descripción wider
+  wsMov['!ref'] = XLSX.utils.encode_range({ s: { r:0, c:0 }, e: { r: mTot2, c: movHdr.length-1 } });
+  XLSX.utils.book_append_sheet(wb, wsMov, 'Movimientos');
+
+  // ════════════════════════════════════════════
+  // HOJA 2 — GASTOS FIJOS (sin columna Ícono)
+  // ════════════════════════════════════════════
+  const gfHdr  = ['Nombre','Monto USD','Día Vcto.','Categoría','Moneda'];
+  const gfData = S.gastosFijos.map(g => [g.name, g.monto ?? 0, g.dia ?? '', g.cat || '', g.cur || 'USD']);
+
+  const wsGF = {};
+  wsGF['!rows'] = [{ hpt: 28 }, { hpt: 13 }, { hpt: 6 }, { hpt: 20 }];
+  addTitleBlock(wsGF, '📋 Gastos Fijos', gfHdr.length);
+  gfHdr.forEach((h, c) => sc(wsGF, 3, c, h, hdrStyle()));
+
+  let totGF = 0;
+  gfData.forEach((row, ri) => {
+    const bg = ri % 2 === 0 ? WHITE : GRAY1;
+    sc(wsGF, 4+ri, 0, row[0], dataStyle(bg));
+    sc(wsGF, 4+ri, 1, row[1], dataStyle(bg, BLACK, false, '#,##0.00'));
+    sc(wsGF, 4+ri, 2, row[2], dataStyle(bg, BLACK, false, null, 'center'));
+    sc(wsGF, 4+ri, 3, row[3], dataStyle(bg));
+    sc(wsGF, 4+ri, 4, row[4], dataStyle(bg, BLACK, false, null, 'center'));
+    totGF += row[1] || 0;
+  });
+
+  const gTot = 4 + gfData.length;
+  sc(wsGF, gTot, 0, 'TOTAL MENSUAL', totLabelStyle('2E7D32'));
+  sc(wsGF, gTot, 1, totGF, totStyle('2E7D32'));
+  for (let c = 2; c < gfHdr.length; c++) sc(wsGF, gTot, c, '', emptyTotStyle());
+
+  autoWidth(wsGF, [gfHdr, ...gfData]);
+  wsGF['!cols'][0] = { wch: 28 };
+  wsGF['!ref'] = XLSX.utils.encode_range({ s: { r:0, c:0 }, e: { r: gTot, c: gfHdr.length-1 } });
+  XLSX.utils.book_append_sheet(wb, wsGF, 'Gastos Fijos');
+
+  // ════════════════════════════════════════════
+  // HOJA 3 — INVERSIONES
+  // ════════════════════════════════════════════
+  const invHdr  = ['Activo','Nombre','Tipo','Fecha Compra','Monto USD','Precio Unit.','Unidades','Notas'];
+  const invData = [];
+  S.inversiones.forEach(g => {
+    if (!g.compras || !g.compras.length) {
+      invData.push([g.sym, g.name, g.tipo, '', 0, 0, 0, '']);
+    } else {
+      g.compras.forEach(c => invData.push([g.sym, g.name, g.tipo, c.fecha||'', c.monto??0, c.precio??0, c.units??0, c.desc||'']));
+    }
+  });
+
+  const wsInv = {};
+  wsInv['!rows'] = [{ hpt: 28 }, { hpt: 13 }, { hpt: 6 }, { hpt: 20 }];
+  addTitleBlock(wsInv, '📈 Inversiones', invHdr.length);
+  invHdr.forEach((h, c) => sc(wsInv, 3, c, h, hdrStyle()));
+
+  let totInvMonto = 0;
+  invData.forEach((row, ri) => {
+    const bg = ri % 2 === 0 ? WHITE : GRAY1;
+    sc(wsInv, 4+ri, 0, row[0], dataStyle(bg, BLACK, true));
+    sc(wsInv, 4+ri, 1, row[1], dataStyle(bg));
+    sc(wsInv, 4+ri, 2, row[2], dataStyle(bg, BLACK, false, null, 'center'));
+    sc(wsInv, 4+ri, 3, row[3], dataStyle(bg));
+    sc(wsInv, 4+ri, 4, row[4], dataStyle(bg, BLUE, false, '#,##0.00'));
+    sc(wsInv, 4+ri, 5, row[5], dataStyle(bg, BLACK, false, '#,##0.0000'));
+    sc(wsInv, 4+ri, 6, row[6], dataStyle(bg, BLACK, false, '#,##0.000000'));
+    sc(wsInv, 4+ri, 7, row[7], dataStyle(bg));
+    totInvMonto += row[4] || 0;
+  });
+
+  const iTot = 4 + invData.length;
+  sc(wsInv, iTot, 0, 'TOTAL INVERTIDO', totLabelStyle(BLUE));
+  sc(wsInv, iTot, 4, totInvMonto, totStyle(BLUE));
+  for (let c of [1,2,3,5,6,7]) sc(wsInv, iTot, c, '', emptyTotStyle());
+
+  autoWidth(wsInv, [invHdr, ...invData]);
+  wsInv['!cols'][1] = { wch: 20 };
+  wsInv['!cols'][7] = { wch: 24 };
+  wsInv['!ref'] = XLSX.utils.encode_range({ s: { r:0, c:0 }, e: { r: iTot, c: invHdr.length-1 } });
+  XLSX.utils.book_append_sheet(wb, wsInv, 'Inversiones');
+
+  // ════════════════════════════════════════════
+  // HOJA 4 — RESUMEN EJECUTIVO
+  // ════════════════════════════════════════════
+  const wsRes = {};
+  wsRes['!cols'] = [{ wch: 34 }, { wch: 20 }];
+  wsRes['!merges'] = [];
+
+  const resSc = (r, c, v, style) => {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    wsRes[addr] = { v, t: typeof v === 'number' ? 'n' : 's', s: style };
+  };
+  const secStyle = () => ({
+    font:      { bold: true, sz: 10, color: { rgb: WHITE } },
+    fill:      { fgColor: { rgb: GREEN } },
+    alignment: { horizontal: 'left', vertical: 'center' },
+    border:    { bottom: { style: 'thin', color: { rgb: WHITE } } }
+  });
+  const resLabelStyle = (r) => ({
+    font:      { sz: 9, color: { rgb: MUTED } },
+    fill:      { fgColor: { rgb: r % 2 === 0 ? WHITE : GRAY1 } },
+    alignment: { horizontal: 'left', vertical: 'center' }
+  });
+  const resValStyle = (r, color = BLACK) => ({
+    font:      { bold: true, sz: 9, color: { rgb: color } },
+    fill:      { fgColor: { rgb: r % 2 === 0 ? WHITE : GRAY1 } },
+    alignment: { horizontal: 'right', vertical: 'center' },
+    numFmt:    '#,##0.00'
+  });
+  const resValStrStyle = (r) => ({
+    font:      { bold: true, sz: 9, color: { rgb: BLACK } },
+    fill:      { fgColor: { rgb: r % 2 === 0 ? WHITE : GRAY1 } },
+    alignment: { horizontal: 'right', vertical: 'center' }
+  });
+
+  // Title
+  const tAddr = XLSX.utils.encode_cell({ r: 0, c: 0 });
+  wsRes[tAddr] = { v: 'VAULT.', t: 's', s: { font: { bold: true, sz: 20, color: { rgb: GREEN } }, alignment: { horizontal: 'left', vertical: 'center' } } };
+  wsRes['!merges'].push({ s: { r:0, c:0 }, e: { r:0, c:1 } });
+  const sAddr = XLSX.utils.encode_cell({ r: 1, c: 0 });
+  wsRes[sAddr] = { v: 'Reporte ejecutivo  ·  ' + new Date().toLocaleDateString('es-VE', { day:'2-digit', month:'long', year:'numeric' }), t: 's', s: { font: { sz: 8, italic: true, color: { rgb: MUTED } }, alignment: { horizontal: 'left' } } };
+  wsRes['!merges'].push({ s: { r:1, c:0 }, e: { r:1, c:1 } });
+
+  const sections = [
+    { title: '📊  MOVIMIENTOS DEL PERÍODO', rows: [
+      ['Total ingresos',        totInc,                    '2E7D32'],
+      ['Total egresos',         totExp,                    RED],
+      ['Balance neto',          totInc - totExp,           (totInc-totExp)>=0?'2E7D32':RED],
+      ['Nro. de transacciones', S.transactions.length,     BLACK, true],
+    ]},
+    { title: '📋  GASTOS FIJOS', rows: [
+      ['Total mensual estimado (USD)', totGF,              RED],
+      ['Nro. de gastos fijos',         S.gastosFijos.length, BLACK, true],
+    ]},
+    { title: '📈  INVERSIONES', rows: [
+      ['Capital total invertido (USD)', totInvMonto,       BLUE],
+      ['Nro. de activos',               S.inversiones.length, BLACK, true],
+    ]},
+    { title: '💰  AHORROS', rows: [
+      ['Saldo en ahorros (USD)',  S.ahorros ? S.ahorros.saldo : 0, '2E7D32'],
+      ['Metas activas',          S.goals ? S.goals.length : 0,     BLACK, true],
+    ]},
+    { title: '📐  RATIOS', rows: [
+      ['Tasa de ahorro',                totInc > 0 ? ((totInc-totExp)/totInc*100).toFixed(1)+'%' : '—', BLACK, true],
+      ['Gastos fijos / Ingresos',       totInc > 0 ? (totGF/totInc*100).toFixed(1)+'%'           : '—', BLACK, true],
+      ['Capital invertido / Ingresos',  totInc > 0 ? (totInvMonto/totInc*100).toFixed(1)+'%'     : '—', BLACK, true],
+    ]},
+  ];
+
+  let row = 3;
+  sections.forEach(sec => {
+    wsRes['!merges'].push({ s: { r: row, c:0 }, e: { r: row, c:1 } });
+    resSc(row, 0, sec.title, secStyle());
+    row++;
+    sec.rows.forEach(([label, val, color, isStr]) => {
+      resSc(row, 0, label, resLabelStyle(row));
+      resSc(row, 1, val,   isStr || typeof val === 'string' ? resValStrStyle(row) : resValStyle(row, color));
+      row++;
     });
-    dl([header, ...body].join('\n'), 'vault-inversiones');
-    notify('CSV de inversiones exportado');
-  }
+    row++; // spacer
+  });
+
+  wsRes['!rows'] = [{ hpt: 36 }, { hpt: 14 }, { hpt: 8 }];
+  wsRes['!ref']  = XLSX.utils.encode_range({ s: { r:0, c:0 }, e: { r: row, c:1 } });
+  XLSX.utils.book_append_sheet(wb, wsRes, 'Resumen');
+
+  // ── Download ──
+  const fname = 'Vault-' + new Date().toISOString().slice(0,10) + '.xlsx';
+  XLSX.writeFile(wb, fname);
+  notify('✓ Excel exportado: ' + fname);
 }
+
 
 function exportBackup() {
   const a = document.createElement('a');
@@ -3489,6 +3768,9 @@ function migrateData(data) {
   if (!d.inversiones) d.inversiones = [];
   // Ensure watchlist exists
   if (!d.watchlist)   d.watchlist = ['crypto:bitcoin:BTC','crypto:ethereum:ETH','stock:AAPL:AAPL','stock:TSLA:TSLA','stock:NVDA:NVDA'];
+  if (!d.customCats)  d.customCats = [];
+  if (!d.budgets)     d.budgets = {};
+  d.transactions.forEach(t => { if (t.note === undefined) t.note = ''; });
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
       t.amountUSD = t.amount || 0; t.amountBS = null;
@@ -3498,10 +3780,184 @@ function migrateData(data) {
   return d;
 }
 
+// ═══════════════════════════════════════════════
+//  CATEGORÍAS PERSONALIZADAS
+// ═══════════════════════════════════════════════
+const DEFAULT_INCOME_CATS  = ['Salario','Freelance','Inversión','Otro ingreso'];
+const DEFAULT_EXPENSE_CATS = ['Alimentación','Vivienda','Transporte','Salud','Educación','Entretenimiento','Ropa','Servicios','Otro gasto'];
+const DEFAULT_ICONS = {
+  'Salario':'💼','Freelance':'🖥️','Inversión':'📈','Otro ingreso':'💸',
+  'Alimentación':'🛒','Vivienda':'🏠','Transporte':'🚗','Salud':'🏥',
+  'Educación':'🎓','Entretenimiento':'🎬','Ropa':'👕','Servicios':'⚡','Otro gasto':'📦'
+};
+
+function allCats() {
+  const custom = S.customCats || [];
+  return [
+    ...DEFAULT_INCOME_CATS.map(n  => ({ name: n, type: 'income',  icon: DEFAULT_ICONS[n]  || '💰', custom: false })),
+    ...DEFAULT_EXPENSE_CATS.map(n => ({ name: n, type: 'expense', icon: DEFAULT_ICONS[n]  || '📦', custom: false })),
+    ...custom
+  ];
+}
+
+function catIcon(name) {
+  const c = allCats().find(c => c.name === name);
+  return c ? c.icon : '💰';
+}
+
+function populateCatSelect(selId, typeFilter) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  const cur = sel.value;
+  const cats = allCats().filter(c => !typeFilter || c.type === typeFilter);
+  sel.innerHTML = cats.map(c => `<option value="${c.name}"${c.name===cur?' selected':''}>${c.icon} ${c.name}</option>`).join('');
+}
+
+function refreshCatSelects() {
+  const type = document.getElementById('tx-type')?.value || 'expense';
+  populateCatSelect('tx-cat', type === 'income' ? 'income' : 'expense');
+  populateCatSelect('bgt-cat', 'expense');
+  renderCustomCatsList();
+  renderBudgetList();
+}
+
+function onCatChange(val) {} // hook for future use
+
+function addCustomCat() {
+  const name = document.getElementById('new-cat-name')?.value.trim();
+  const type = document.getElementById('new-cat-type')?.value || 'expense';
+  const icon = document.getElementById('new-cat-icon')?.value || '🏷️';
+  if (!name) { notify('Escribe un nombre para la categoría'); return; }
+  if (allCats().find(c => c.name.toLowerCase() === name.toLowerCase())) { notify('Esa categoría ya existe'); return; }
+  if (!S.customCats) S.customCats = [];
+  S.customCats.push({ name, type, icon, custom: true });
+  document.getElementById('new-cat-name').value = '';
+  persist();
+  refreshCatSelects();
+  notify('Categoría "' + name + '" añadida');
+}
+
+function delCustomCat(name) {
+  if (!S.customCats) return;
+  S.customCats = S.customCats.filter(c => c.name !== name);
+  persist();
+  refreshCatSelects();
+  notify('Categoría eliminada');
+}
+
+function renderCustomCatsList() {
+  const el = document.getElementById('custom-cats-list');
+  if (!el) return;
+  const custom = S.customCats || [];
+  if (!custom.length) {
+    el.innerHTML = '<span style="font-size:.75rem;color:var(--muted)">Sin categorías personalizadas aún</span>';
+    return;
+  }
+  el.innerHTML = custom.map(c =>
+    `<span class="cat-chip">${c.icon} ${c.name} <span style="font-size:.65rem;opacity:.5">${c.type==='income'?'↑':'↓'}</span> <span class="chip-del" onclick="delCustomCat('${c.name.replace(/'/g,"\'")}')">✕</span></span>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  PRESUPUESTO MENSUAL
+// ═══════════════════════════════════════════════
+function setBudget() {
+  const cat = document.getElementById('bgt-cat')?.value;
+  const amt = parseFloat(document.getElementById('bgt-amt')?.value);
+  if (!cat || !amt || amt <= 0) { notify('Selecciona categoría y monto'); return; }
+  if (!S.budgets) S.budgets = {};
+  S.budgets[cat] = amt;
+  document.getElementById('bgt-amt').value = '';
+  persist();
+  renderBudgetList();
+  renderBudgetWidget();
+  notify('Presupuesto de ' + cat + ' guardado: $' + amt.toFixed(0));
+}
+
+function delBudget(cat) {
+  if (!S.budgets) return;
+  delete S.budgets[cat];
+  persist();
+  renderBudgetList();
+  renderBudgetWidget();
+}
+
+function renderBudgetList() {
+  const el = document.getElementById('bgt-list');
+  if (!el) return;
+  const budgets = S.budgets || {};
+  const keys = Object.keys(budgets);
+  if (!keys.length) {
+    el.innerHTML = '<p style="font-size:.75rem;color:var(--muted);margin:.4rem 0 0">Sin presupuestos definidos aún.</p>';
+    return;
+  }
+  const txs = mTxs();
+  el.innerHTML = keys.map(cat => {
+    const limit   = budgets[cat];
+    const spent   = txs.filter(t => t.type==='expense' && t.cat===cat).reduce((a,t)=>a+(t.amountUSD||0),0);
+    const pct     = Math.min(Math.round(spent/limit*100), 100);
+    const cls     = pct >= 100 ? 'over' : pct >= 75 ? 'warn' : 'ok';
+    const icon    = catIcon(cat);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;font-size:.8rem">
+          <span>${icon} ${cat}</span>
+          <span style="color:var(--muted)">$${spent.toFixed(0)} / $${limit.toFixed(0)}</span>
+        </div>
+        <div class="budget-bar-wrap"><div class="budget-bar-fill ${cls}" style="width:${pct}%"></div></div>
+      </div>
+      <button onclick="delBudget('${cat.replace(/'/g,"\'")}') " style="margin-left:.6rem;font-size:.7rem;padding:.1rem .4rem;background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderBudgetWidget() {
+  const widget = document.getElementById('budget-widget');
+  const barsEl = document.getElementById('budget-bars');
+  if (!widget || !barsEl) return;
+  const budgets = S.budgets || {};
+  const keys = Object.keys(budgets);
+  if (!keys.length) { widget.style.display = 'none'; return; }
+  widget.style.display = '';
+  const txs = mTxs();
+  barsEl.innerHTML = keys.map(cat => {
+    const limit = budgets[cat];
+    const spent = txs.filter(t => t.type==='expense' && t.cat===cat).reduce((a,t)=>a+(t.amountUSD||0),0);
+    const pct   = Math.min(Math.round(spent/limit*100), 100);
+    const cls   = pct >= 100 ? 'over' : pct >= 75 ? 'warn' : 'ok';
+    const icon  = catIcon(cat);
+    const label = pct >= 100 ? '🔴 Límite superado' : pct >= 75 ? '🟡 Cerca del límite' : '';
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.2rem">
+        <span style="font-weight:500">${icon} ${cat}</span>
+        <span style="color:var(--muted)">${label ? label + ' · ' : ''}$${spent.toFixed(0)} / $${limit.toFixed(0)}</span>
+      </div>
+      <div class="budget-bar-wrap" style="height:7px"><div class="budget-bar-fill ${cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  FILTRO FECHAS — clear
+// ═══════════════════════════════════════════════
+function clearDateFilter() {
+  const f = document.getElementById('fdate-from');
+  const t = document.getElementById('fdate-to');
+  const b = document.getElementById('fdate-clear');
+  if (f) f.value = '';
+  if (t) t.value = '';
+  if (b) b.style.display = 'none';
+  renderMov();
+}
+
+
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tx-date').value = new Date().toISOString().slice(0, 10);
   document.getElementById('tx-date').addEventListener('change', () => { updPreview(); updRateStripInfo(); });
   setActiveRate(activeRateKey);
+  // Refresh cat selects when type changes
+  const typeEl = document.getElementById('tx-type');
+  if (typeEl) typeEl.addEventListener('change', () => refreshCatSelects());
 });
 
 window.addEventListener('load', () => {
