@@ -243,6 +243,24 @@ select option{background:var(--surface2);}
 .txi-date{font-size:.68rem;color:var(--muted);flex-shrink:0;min-width:32px;}
 .txi-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:3px 5px;border-radius:5px;font-size:.8rem;transition:color .14s;}
 .txi-del:hover{color:var(--expense);}
+/* Rate badge en transacciones */
+.txi-rate{display:inline-flex;align-items:center;gap:.22rem;font-size:.62rem;font-weight:600;
+  padding:.15rem .45rem;border-radius:99px;margin-top:.2rem;letter-spacing:.02em;}
+.txi-rate.bcv{background:rgba(96,212,240,.15);color:var(--bcv);}
+.txi-rate.euro{background:rgba(200,160,240,.15);color:var(--euro);}
+.txi-rate.usdt{background:rgba(38,161,123,.18);color:#26a17b;}
+.txi-rate.custom{background:rgba(240,192,96,.15);color:var(--custom);}
+/* Diferencial pill */
+.diff-pill{display:flex;align-items:center;gap:.45rem;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:99px;padding:.28rem .85rem;font-size:.72rem;white-space:nowrap;cursor:default;}
+.diff-val{font-weight:700;letter-spacing:.01em;}
+.diff-val.high{color:var(--expense);}
+.diff-val.mid{color:var(--custom);}
+.diff-val.low{color:var(--income);}
+@media(max-width:600px){
+  .diff-pill{width:100%;justify-content:center;}
+}
 
 /* CHART */
 .chart-wrap{position:relative;}
@@ -435,6 +453,10 @@ canvas{width:100%!important;}
     </div>
     <div class="rate-val-pill" onclick="openModal()" title="Ver tasas / configurar">
       <span id="rate-display" class="rv-loading">⏳ Cargando…</span>
+    </div>
+    <div class="diff-pill" id="diff-pill" title="Diferencial USDT vs BCV">
+      <span style="color:var(--muted)">Dif.</span>
+      <span class="diff-val" id="diff-val">—</span>
     </div>
   </div>
   <div style="font-size:.72rem;color:var(--muted)">uso personal</div>
@@ -926,6 +948,21 @@ function setActiveRate(key) {
   renderDash();
 }
 
+function updateDiffPill() {
+  const bcvR  = rates['bcv'];
+  const usdtR = rates['usdt'];
+  const el    = document.getElementById('diff-val');
+  if (!el) return;
+  if (!bcvR || !usdtR) { el.textContent = '—'; return; }
+  const diff = ((usdtR - bcvR) / bcvR) * 100;
+  const sign = diff >= 0 ? '+' : '';
+  el.textContent = sign + diff.toFixed(1) + '%';
+  el.className = 'diff-val ' + (Math.abs(diff) >= 30 ? 'high' : Math.abs(diff) >= 15 ? 'mid' : 'low');
+  // Also update title tooltip with actual values
+  const pill = document.getElementById('diff-pill');
+  if (pill) pill.title = `BCV: ${fmt(bcvR)} · USDT: ${fmt(usdtR)} · Diferencial: ${sign}${diff.toFixed(1)}%`;
+}
+
 function updateRateDisplay() {
   const el  = document.getElementById('rate-display');
   const r   = rates[activeRateKey];
@@ -1193,14 +1230,22 @@ function delGoal(id) {
 //  TX HTML
 // ═══════════════════════════════════════════════
 function txHtml(t) {
-  const icon  = CICONS[t.cat] || '💰';
-  const d     = t.date ? t.date.slice(5) : '';
-  const rk    = t.rateKey || 'bcv';
+  const icon   = CICONS[t.cat] || '💰';
+  const d      = t.date ? t.date.slice(5) : '';
+  const rk     = t.rateKey || 'bcv';
+  const rlabel = RATE_LABELS[rk] || rk;
+  const remoji = RATE_EMOJI[rk]  || '';
   const bsLine = (t.amountBS && t.rateUsed)
-    ? `<span class="txi-bs">Bs. ${fmt(t.amountBS)} · ${RATE_EMOJI[rk] || ''} ${fmt(t.rateUsed)}</span>` : '';
+    ? `<span class="txi-bs">Bs. ${fmt(t.amountBS)}</span>` : '';
+  const rateBadge = t.rateUsed
+    ? `<span class="txi-rate ${rk}">${remoji} ${rlabel} @ ${fmt(t.rateUsed)}</span>` : '';
   return `<div class="txi">
     <div class="txi-ico ${t.type}">${icon}</div>
-    <div class="txi-info"><div class="txi-desc">${t.desc}</div><div class="txi-cat">${t.cat}</div></div>
+    <div class="txi-info">
+      <div class="txi-desc">${t.desc}</div>
+      <div class="txi-cat">${t.cat}</div>
+      ${rateBadge}
+    </div>
     <div class="txi-amt">
       <span class="txi-usd ${t.type}">${t.type === 'income' ? '+' : '-'}$${fmt(t.amountUSD)}</span>
       ${bsLine}
