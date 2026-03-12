@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Vault</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cG9seWdvbiBwb2ludHM9IjUwLDQgOTYsMjggOTYsNzIgNTAsOTYgNCw3MiA0LDI4IiBmaWxsPSIjMGQxMTE3IiBzdHJva2U9IiNjOGYwNjAiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjIgMzYsMjIgNTAsNjIgNjQsMjIgNzgsMjIgNTAsNjgiIGZpbGw9IiNjOGYwNjAiLz4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9Ijc0IiByPSI0IiBmaWxsPSIjYzhmMDYwIi8+Cjwvc3ZnPg==">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -94,6 +95,7 @@ header{display:flex;align-items:center;justify-content:space-between;
 
 /* Logo entrance */
 .splash-logo-wrap{position:relative;z-index:1;margin-bottom:2rem;
+  display:flex;flex-direction:column;align-items:center;
   animation:splashLogoIn .7s cubic-bezier(.34,1.56,.64,1) both;}
 @keyframes splashLogoIn{from{opacity:0;transform:translateY(18px) scale(.92)}to{opacity:1;transform:none}}
 .splash-logo{font-family:'DM Serif Display',serif;font-size:3.8rem;
@@ -556,7 +558,19 @@ canvas{width:100%!important;}
   <div class="splash-glow"></div>
 
   <div class="splash-logo-wrap">
-    <div class="splash-logo">Vault<span class="splash-dot"></span></div>
+    <svg width="110" height="110" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="50,4 96,28 96,72 50,96 4,72 4,28" fill="#0d1117" stroke="#c8f060" stroke-width="1.8"/>
+  <polygon points="50,8 92,30 92,70 50,92 8,70 8,30" fill="none" stroke="#c8f060" stroke-width="0.5" opacity="0.2"/>
+  <circle cx="50" cy="4"  r="2.5" fill="#c8f060"/>
+  <circle cx="96" cy="28" r="2.5" fill="#c8f060"/>
+  <circle cx="96" cy="72" r="2.5" fill="#c8f060"/>
+  <circle cx="50" cy="96" r="2.5" fill="#c8f060"/>
+  <circle cx="4"  cy="72" r="2.5" fill="#c8f060"/>
+  <circle cx="4"  cy="28" r="2.5" fill="#c8f060"/>
+  <polygon points="22,22 36,22 50,62 64,22 78,22 50,68" fill="#c8f060"/>
+  <circle cx="50" cy="74" r="4" fill="#c8f060"/>
+</svg>
+    <div class="splash-logo" style="margin-top:.9rem">Vault<span class="splash-dot"></span></div>
     <div class="splash-by">by SS</div>
   </div>
 
@@ -1532,14 +1546,15 @@ const TAB_IDS = ['dashboard', 'movimientos', 'ahorro', 'gastos-fijos', 'inversio
 function goTab(t) {
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', TAB_IDS[i] === t));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-' + t).classList.add('active');
+  const panel = document.getElementById('panel-' + t);
+  if (panel) panel.classList.add('active');
   activeTab = t;
-  if (t === 'analisis')    renderAnalisis();
-  if (t === 'movimientos') renderMov();
-  if (t === 'metas')       renderMetas();
-  if (t === 'gastos-fijos')  renderGastosFijos();
-  if (t === 'ahorros')        renderAhorros();
-  if (t === 'inversiones')    { renderInversiones(); renderWatchlistTags(); if(!Object.keys(mktData).length) refreshMarket(); }
+  if (t === 'dashboard')    { renderDash(); renderAnalisis(); }
+  if (t === 'movimientos')  renderMov();
+  if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
+  if (t === 'gastos-fijos') renderGastosFijos();
+  if (t === 'inversiones')  { renderInversiones(); renderWatchlistTags(); if(!Object.keys(mktData).length) refreshMarket(); }
+  if (t === 'config')       {}
 }
 
 // ═══════════════════════════════════════════════
@@ -2760,6 +2775,7 @@ function initMktDrag() {
 // ═══════════════════════════════════════════════
 function refreshAll() {
   renderDash();
+  renderHeaderSummary();
   if (activeTab === 'movimientos')  renderMov();
   if (activeTab === 'ahorro')       { renderAhorros(); renderMetas(); }
   if (activeTab === 'gastos-fijos') renderGastosFijos();
