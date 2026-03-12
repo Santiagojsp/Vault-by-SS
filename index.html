@@ -1669,11 +1669,15 @@ function addTx() {
     rateKey: activeRateKey,
     originalCurrency: txCur
   });
-  persist(); refreshAll();
-  document.getElementById('tx-desc').value = '';
-  document.getElementById('tx-amt').value  = '';
+  persist();
+  renderDash();
+  renderMov();
+  renderHeaderSummary();
+  document.getElementById('tx-desc').value  = '';
+  document.getElementById('tx-amt').value   = '';
   document.getElementById('tx-preview').innerHTML = '—';
-  document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('tx-date').value  = new Date().toISOString().slice(0,10);
+  updRateStripInfo();
   notify(type === 'income' ? 'Ingreso registrado' : 'Gasto registrado');
 }
 
@@ -2002,14 +2006,20 @@ function renderGoalProg() {
 //  RENDER MOVIMIENTOS
 // ═══════════════════════════════════════════════
 function renderMov() {
-  const ft     = document.getElementById('ft').value;
-  const fc     = document.getElementById('fc').value;
-  const search = (document.getElementById('fsearch').value || '').toLowerCase().trim();
+  const ftEl = document.getElementById('ft');
+  const fcEl = document.getElementById('fc');
+  const txlEl = document.getElementById('full-txl');
+  if (!ftEl || !txlEl) return; // panel not rendered yet
+  const ft     = ftEl.value;
+  const fc     = fcEl ? fcEl.value : 'all';
+  const search = (document.getElementById('fsearch') ? document.getElementById('fsearch').value : '').toLowerCase().trim();
   const cats   = [...new Set(S.transactions.map(t => t.cat))];
   const cs     = document.getElementById('fc');
-  const cur    = cs.value;
-  cs.innerHTML = '<option value="all">Todas las categorías</option>' +
-    cats.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
+  if (cs) {
+    const cur  = cs.value;
+    cs.innerHTML = '<option value="all">Todas las categorías</option>' +
+      cats.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
+  }
   let txs = mTxs().sort((a, b) => new Date(b.date) - new Date(a.date));
   if (ft !== 'all') txs = txs.filter(t => t.type === ft);
   if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
@@ -2971,11 +2981,14 @@ function initMktDrag() {
 function refreshAll() {
   renderDash();
   renderHeaderSummary();
-  if (activeTab === 'movimientos')  renderMov();
-  if (activeTab === 'ahorro')       { renderAhorros(); renderMetas(); }
-  if (activeTab === 'gastos-fijos') renderGastosFijos();
-  if (activeTab === 'inversiones')  renderInversiones();
-  if (activeTab === 'dashboard')    renderAnalisis();
+  updateGFTabBadge();
+  // Always render the active panel
+  const t = activeTab;
+  if (t === 'movimientos')  renderMov();
+  if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
+  if (t === 'gastos-fijos') renderGastosFijos();
+  if (t === 'inversiones')  renderInversiones();
+  if (t === 'dashboard')    renderAnalisis();
 }
 
 // ═══════════════════════════════════════════════
@@ -3009,6 +3022,7 @@ function initGoogleAuth() {
         showApp();
         await loadFromDrive();
         fetchAllRates();
+        startTokenRenewal();
       },
     });
     // Auto sign-in si hay token guardado
@@ -3021,6 +3035,7 @@ function initGoogleAuth() {
         showApp();
         await loadFromDrive();
         fetchAllRates();
+        startTokenRenewal();
       } catch {
         localStorage.removeItem('fp_gtoken');
         accessToken = null;
@@ -3032,6 +3047,7 @@ function initGoogleAuth() {
 function signIn() { tokenClient.requestAccessToken({ prompt: '' }); }
 function signOut() {
   if (accessToken) google.accounts.oauth2.revoke(accessToken, ()=>{});
+  if (_tokenRenewInterval) { clearInterval(_tokenRenewInterval); _tokenRenewInterval = null; }
   accessToken = null; driveFileId = null;
   localStorage.removeItem('fp_gtoken');
   localStorage.removeItem('fp_user_name');
@@ -3129,12 +3145,23 @@ async function loadFromDrive() {
       driveFileId = result.files[0].id;
       const cfg = document.getElementById('cfg-filename');
       if (cfg) cfg.textContent = DRIVE_FILENAME + ' (ID: ' + driveFileId + ')';
-      const content = await fetch(
+      const contentRes = await fetch(
         `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`,
         { headers: { Authorization: 'Bearer ' + accessToken } }
       );
-      const data = await content.json();
+      if (contentRes.status === 401) {
+        // Token expirado al cargar — limpiar y mostrar splash
+        localStorage.removeItem('fp_gtoken');
+        accessToken = null;
+        setSyncStatus('err', 'Sesión expirada — reconecta');
+        loadLocalBackup(); refreshAll();
+        showSplash(false);
+        return;
+      }
+      if (!contentRes.ok) throw new Error('HTTP ' + contentRes.status);
+      const data = await contentRes.json();
       S = migrateData(data);
+      try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
       setSyncStatus('ok', 'Sincronizado · ' + new Date().toLocaleTimeString('es-VE'));
     } else {
       setSyncStatus('warn', 'Primer uso — creando archivo en Drive…');
@@ -3149,37 +3176,85 @@ async function loadFromDrive() {
 
 async function saveToDrive() {
   if (!accessToken) return;
-  if (!navigator.onLine) { setSyncStatus('warn','Sin conexión — guardado local'); return; }
+  if (!navigator.onLine) { setSyncStatus('warn', 'Sin conexión — guardado local'); return; }
   setSyncStatus('spin', 'Guardando en Drive…');
   try {
     const body = JSON.stringify(S, null, 2);
     if (driveFileId) {
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
-        method: 'PATCH',
-        headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
-        body
-      });
+      const res = await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+        { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' }, body }
+      );
+      // Token expirado o error — intentar renovar y reintentar una vez
+      if (res.status === 401) {
+        const renewed = await renewToken();
+        if (!renewed) { setSyncStatus('err', 'Sesión expirada — reconecta'); return; }
+        const retry = await fetch(
+          `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+          { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json' }, body }
+        );
+        if (!retry.ok) { setSyncStatus('err', 'Error al guardar (' + retry.status + ')'); return; }
+      } else if (!res.ok) {
+        setSyncStatus('err', 'Error al guardar en Drive (' + res.status + ')');
+        try { localStorage.setItem('fp_offline_dirty', '1'); } catch {}
+        return;
+      }
     } else {
       const meta = JSON.stringify({ name: DRIVE_FILENAME, mimeType: 'application/json' });
       const fd = new FormData();
       fd.append('metadata', new Blob([meta], { type: 'application/json' }));
-      fd.append('file', new Blob([body], { type: 'application/json' }));
-      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-        method: 'POST', headers: { Authorization: 'Bearer ' + accessToken }, body: fd
-      });
+      fd.append('file',     new Blob([body], { type: 'application/json' }));
+      const res = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+        { method: 'POST', headers: { Authorization: 'Bearer ' + accessToken }, body: fd }
+      );
+      if (!res.ok) { setSyncStatus('err', 'Error al crear archivo (' + res.status + ')'); return; }
       const created = await res.json();
+      if (!created.id) { setSyncStatus('err', 'Drive no devolvió ID de archivo'); return; }
       driveFileId = created.id;
       const cfg = document.getElementById('cfg-filename');
       if (cfg) cfg.textContent = DRIVE_FILENAME + ' (ID: ' + driveFileId + ')';
     }
+    // Éxito — actualizar backup local también
+    try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+    try { localStorage.removeItem('fp_offline_dirty'); } catch {}
     const ts = new Date().toLocaleTimeString('es-VE');
     setSyncStatus('ok', 'Guardado · ' + ts);
     const cl = document.getElementById('cfg-lastsave');
     if (cl) cl.textContent = new Date().toLocaleString('es-VE');
   } catch (e) {
-    setSyncStatus('err', 'Sin conexión — guardado local');
+    setSyncStatus('err', 'Error al guardar — ' + e.message);
     try { localStorage.setItem('fp_offline_dirty', '1'); } catch {}
   }
+}
+
+// Renueva el access token silenciosamente (Google lo emite si la sesión sigue activa)
+async function renewToken() {
+  return new Promise(resolve => {
+    try {
+      const orig = tokenClient.callback;
+      tokenClient.callback = async (resp) => {
+        tokenClient.callback = orig;
+        if (resp.error) { resolve(false); return; }
+        accessToken = resp.access_token;
+        gapi.client.setToken({ access_token: accessToken });
+        localStorage.setItem('fp_gtoken', accessToken);
+        resolve(true);
+      };
+      tokenClient.requestAccessToken({ prompt: '' });
+    } catch { resolve(false); }
+  });
+}
+
+// Renovación preventiva cada 50 min — evita que el token expire mientras la app está abierta
+let _tokenRenewInterval = null;
+function startTokenRenewal() {
+  if (_tokenRenewInterval) clearInterval(_tokenRenewInterval);
+  _tokenRenewInterval = setInterval(async () => {
+    if (!accessToken) return;
+    const ok = await renewToken();
+    if (!ok) setSyncStatus('warn', 'No se pudo renovar sesión — reconecta si hay problemas');
+  }, 50 * 60 * 1000); // cada 50 minutos
 }
 
 function loadLocalBackup() {
