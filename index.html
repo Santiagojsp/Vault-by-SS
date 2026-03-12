@@ -457,6 +457,7 @@ canvas{width:100%!important;}
     <div class="diff-pill" id="diff-pill" title="Diferencial USDT vs BCV">
       <span style="color:var(--muted)">Dif.</span>
       <span class="diff-val" id="diff-val">—</span>
+      <span id="diff-change" style="font-size:.65rem;font-weight:600;letter-spacing:.01em"></span>
     </div>
   </div>
   <div style="font-size:.72rem;color:var(--muted)">uso personal</div>
@@ -809,6 +810,10 @@ let rates = {
   custom: { promedio: parseFloat(localStorage.getItem('fp_custom_rate') || '0') || null }
 };
 let activeRateKey = localStorage.getItem('fp_active_rate') || 'bcv';
+const prevRates = {
+  bcv:  parseFloat(localStorage.getItem('fp_prev_bcv')  || '0') || null,
+  usdt: parseFloat(localStorage.getItem('fp_prev_usdt') || '0') || null
+};  // guarda los promedios anteriores para mostrar cambio
 
 const RATE_LABELS = { bcv: 'BCV $', euro: 'Euro', usdt: 'USDT', custom: 'Custom' };
 const RATE_COLORS = { bcv: 'var(--bcv)', euro: 'var(--euro)', usdt: 'var(--usdt)', custom: 'var(--custom)' };
@@ -876,7 +881,7 @@ async function fetchAllRates() {
     if (Date.now() - ts < 2 * 3600 * 1000) {
       const c = JSON.parse(localStorage.getItem(RATES_CACHE_KEY) || 'null');
       if (c && c.bcv && c.bcv.promedio) {
-        applyRatesData(c); updateUI(); return;
+        applyRatesData(c, true); updateUI(); return;
       }
     }
   } catch {}
@@ -920,7 +925,18 @@ async function fetchAllRates() {
   updateUI();
 }
 
-function applyRatesData(data) {
+function applyRatesData(data, fromCache = false) {
+  // Solo guardar "anterior" cuando hay datos frescos (no desde caché)
+  if (!fromCache) {
+    if (rates.bcv  && rates.bcv.promedio)  {
+      localStorage.setItem('fp_prev_bcv',  rates.bcv.promedio);
+      prevRates.bcv  = parseFloat(localStorage.getItem('fp_prev_bcv'));
+    }
+    if (rates.usdt && rates.usdt.promedio) {
+      localStorage.setItem('fp_prev_usdt', rates.usdt.promedio);
+      prevRates.usdt = parseFloat(localStorage.getItem('fp_prev_usdt'));
+    }
+  }
   if (data.bcv  && data.bcv.promedio)  rates.bcv  = data.bcv;
   if (data.euro && data.euro.promedio) rates.euro = data.euro;
   if (data.usdt && data.usdt.promedio) rates.usdt = data.usdt;
@@ -949,18 +965,35 @@ function setActiveRate(key) {
 }
 
 function updateDiffPill() {
-  const bcvR  = rates['bcv'];
-  const usdtR = rates['usdt'];
+  const bcvR  = rates['bcv']  && rates['bcv'].promedio;
+  const usdtR = rates['usdt'] && rates['usdt'].promedio;
   const el    = document.getElementById('diff-val');
   if (!el) return;
   if (!bcvR || !usdtR) { el.textContent = '—'; return; }
   const diff = ((usdtR - bcvR) / bcvR) * 100;
   const sign = diff >= 0 ? '+' : '';
   el.textContent = sign + diff.toFixed(1) + '%';
-  el.className = 'diff-val ' + (Math.abs(diff) >= 30 ? 'high' : Math.abs(diff) >= 15 ? 'mid' : 'low');
-  // Also update title tooltip with actual values
+  el.className = 'diff-val ' + (Math.abs(diff) >= 51 ? 'high' : Math.abs(diff) >= 26 ? 'mid' : 'low');
+
+  // Cambio vs actualización anterior
+  const chEl = document.getElementById('diff-change');
+  if (chEl) {
+    const prevBCV  = prevRates.bcv;
+    const prevUSDT = prevRates.usdt;
+    if (prevBCV && prevUSDT) {
+      const prevDiff   = ((prevUSDT - prevBCV) / prevBCV) * 100;
+      const delta      = diff - prevDiff;
+      const dsign      = delta >= 0 ? '+' : '';
+      chEl.textContent = dsign + delta.toFixed(1) + '%';
+      chEl.style.color = delta > 0 ? 'var(--expense)' : delta < 0 ? 'var(--income)' : 'var(--muted)';
+      chEl.title       = `Anterior: ${prevDiff.toFixed(1)}% · Cambio: ${dsign}${delta.toFixed(1)}%`;
+    } else {
+      chEl.textContent = '';
+    }
+  }
+
   const pill = document.getElementById('diff-pill');
-  if (pill) pill.title = `BCV: ${fmt(bcvR)} · USDT: ${fmt(usdtR)} · Diferencial: ${sign}${diff.toFixed(1)}%`;
+  if (pill) pill.title = `BCV: Bs.${fmt(bcvR)} · USDT: Bs.${fmt(usdtR)} · Diferencial: ${sign}${diff.toFixed(1)}%`;
 }
 
 function updateRateDisplay() {
@@ -980,6 +1013,7 @@ function updateRateDisplay() {
 
 function updateUI() {
   updateRateDisplay();
+  updateDiffPill();
   populateModal();
   updRateStripInfo();
   renderDash();
