@@ -1230,6 +1230,7 @@ const DRIVE_FILENAME   = 'finanzas-personales-data.json';
 let driveFileId  = null;
 let accessToken  = null;
 let saveTimer    = null;
+let editingTxId  = null;
 let userEmail    = '';
 
 const SK = 'fp_v4';
@@ -1683,6 +1684,7 @@ function addTx() {
   updRateStripInfo();
 
   // Render
+  editingTxId = null;
   renderMov();
   renderDash();
   renderHeaderSummary();
@@ -1694,6 +1696,7 @@ function delTx(id) {
   const tx = S.transactions.find(t => t.id === id);
   if (!tx) return;
   S.transactions = S.transactions.filter(t => t.id !== id);
+  editingTxId = null;
   try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
   schedSave();
   renderMov(); renderDash(); renderHeaderSummary();
@@ -1774,7 +1777,7 @@ function txHtml(t, editMode = false) {
       <input id="edit-amt-${t.id}"  type="number" value="${t.amountUSD}" step="0.01" min="0" style="width:90px;font-size:.8rem;padding:.3rem .5rem">
       <div style="display:flex;gap:.35rem;margin-left:auto">
         <button class="btn btn-acc btn-sm" onclick="saveTxEdit(${t.id})">Guardar</button>
-        <button class="btn btn-ghost btn-sm" onclick="renderMov()">Cancelar</button>
+        <button class="btn btn-ghost btn-sm" onclick="editingTxId=null;renderMov()">Cancelar</button>
       </div>
     </div>`;
   }
@@ -1824,13 +1827,8 @@ function txHtmlFull(t, editMode = false) {
 }
 
 function editTx(id) {
-  const t = S.transactions.find(t => t.id === id);
-  if (!t) return;
-  // Find the element in the movimientos panel specifically
-  const txlEl = document.getElementById('full-txl');
-  if (!txlEl) return;
-  const el = txlEl.querySelector('[id="txi-' + id + '"]');
-  if (el) el.outerHTML = txHtmlFull(t, true);
+  editingTxId = id;
+  renderMov();
 }
 
 function saveTxEdit(id) {
@@ -1845,10 +1843,12 @@ function saveTxEdit(id) {
   t.desc      = newDesc;
   t.amountUSD = newAmt;
   if (t.rateUsed) t.amountBS = newAmt * t.rateUsed;
+  editingTxId = null;
   try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
   schedSave();
   renderMov();
   renderDash();
+  renderHeaderSummary();
   notify('Movimiento actualizado');
 }
 
@@ -2076,7 +2076,7 @@ function renderMov() {
   if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
   if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search));
   document.getElementById('full-txl').innerHTML = txs.length
-    ? txs.map(txHtmlFull).join('')
+    ? txs.map(t => txHtmlFull(t, t.id === editingTxId)).join('')
     : `<div class="empty">${search ? 'Sin resultados para "' + search + '"' : 'Sin movimientos para este filtro'}</div>`;
 }
 
