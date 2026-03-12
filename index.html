@@ -1700,7 +1700,7 @@ function addTx() {
     if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
     if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search));
     txlEl.innerHTML = txs.length
-      ? txs.map(txHtml).join('')
+      ? txs.map(txHtmlFull).join('')
       : '<div class="empty">Sin movimientos para este filtro</div>';
   }
 
@@ -1795,6 +1795,33 @@ function txHtml(t, editMode = false) {
     </div>`;
   }
 
+  return `<div class="txi">
+    <div class="txi-ico ${t.type}">${icon}</div>
+    <div class="txi-info">
+      <div class="txi-desc">${t.desc}</div>
+      <div class="txi-cat">${t.cat}</div>
+      ${rateBadge}
+    </div>
+    <div class="txi-amt">
+      <span class="txi-usd ${t.type}">${t.type === 'income' ? '+' : '-'}$${fmt(t.amountUSD)}</span>
+      ${bsLine}
+    </div>
+    <div class="txi-date">${d}</div>
+  </div>`;
+}
+
+// txHtml with edit/delete actions — only used in Movimientos panel
+function txHtmlFull(t, editMode = false) {
+  if (editMode) return txHtml(t, true); // reuse edit mode from txHtml
+  const icon   = CICONS[t.cat] || '💰';
+  const d      = t.date ? t.date.slice(5) : '';
+  const rk     = t.rateKey || 'bcv';
+  const rlabel = RATE_LABELS[rk] || rk;
+  const remoji = RATE_EMOJI[rk]  || '';
+  const bsLine = (t.amountBS && t.rateUsed)
+    ? `<span class="txi-bs">Bs. ${fmt(t.amountBS)}</span>` : '';
+  const rateBadge = t.rateUsed
+    ? `<span class="txi-rate ${rk}">${remoji} ${rlabel} @ ${fmt(t.rateUsed)}</span>` : '';
   return `<div class="txi" id="txi-${t.id}">
     <div class="txi-ico ${t.type}">${icon}</div>
     <div class="txi-info">
@@ -1815,20 +1842,30 @@ function txHtml(t, editMode = false) {
 function editTx(id) {
   const t = S.transactions.find(t => t.id === id);
   if (!t) return;
-  const el = document.getElementById('txi-' + id);
-  if (el) el.outerHTML = txHtml(t, true);
+  // Find the element in the movimientos panel specifically
+  const txlEl = document.getElementById('full-txl');
+  if (!txlEl) return;
+  const el = txlEl.querySelector('#txi-' + id);
+  if (el) el.outerHTML = txHtmlFull(t, true);
 }
 
 function saveTxEdit(id) {
   const t = S.transactions.find(t => t.id === id);
-  if (!t) return;
-  const newDesc = document.getElementById('edit-desc-' + id).value.trim();
-  const newAmt  = parseFloat(document.getElementById('edit-amt-' + id).value);
+  if (!t) { renderMov(); return; }
+  const descEl = document.getElementById('edit-desc-' + id);
+  const amtEl  = document.getElementById('edit-amt-'  + id);
+  if (!descEl || !amtEl) { renderMov(); return; }
+  const newDesc = descEl.value.trim();
+  const newAmt  = parseFloat(amtEl.value);
   if (!newDesc || !newAmt || newAmt <= 0) { notify('Datos inválidos'); return; }
   t.desc      = newDesc;
   t.amountUSD = newAmt;
   if (t.rateUsed) t.amountBS = newAmt * t.rateUsed;
-  persist(); renderMov(); renderDash(); notify('Movimiento actualizado');
+  try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+  schedSave();
+  renderMov();
+  renderDash();
+  notify('Movimiento actualizado');
 }
 
 // ═══════════════════════════════════════════════
@@ -2055,7 +2092,7 @@ function renderMov() {
   if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
   if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search));
   document.getElementById('full-txl').innerHTML = txs.length
-    ? txs.map(txHtml).join('')
+    ? txs.map(txHtmlFull).join('')
     : `<div class="empty">${search ? 'Sin resultados para "' + search + '"' : 'Sin movimientos para este filtro'}</div>`;
 }
 
