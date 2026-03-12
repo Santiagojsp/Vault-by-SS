@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Vault</title>
+<title>Vault.</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cG9seWdvbiBwb2ludHM9IjUwLDQgOTYsMjggOTYsNzIgNTAsOTYgNCw3MiA0LDI4IiBmaWxsPSIjMGQxMTE3IiBzdHJva2U9IiNjOGYwNjAiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjIgMzYsMjIgNTAsNjIgNjQsMjIgNzgsMjIgNTAsNjgiIGZpbGw9IiNjOGYwNjAiLz4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9Ijc0IiByPSI0IiBmaWxsPSIjYzhmMDYwIi8+Cjwvc3ZnPg==">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="apple-mobile-web-app-title" content="Vault.">
 <meta name="theme-color" content="#0c0e13">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <style>
@@ -21,6 +21,40 @@
   --bcv:#60d4f0;--euro:#c8a0f0;--usdt:#26a17b;--custom:#f0c060;
   --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
 }
+/* ── LIGHT MODE ── */
+html.light{
+  --bg:#f2f4f7;--surface:#ffffff;--surface2:#eaecf0;--surface3:#dde1ea;
+  --border:#d0d5e0;--border2:#bcc2d2;
+  --accent:#6da800;--accent2:#007fa8;--accent3:#b0005a;
+  --text:#18202e;--muted:#6e7890;--dim:#3e4860;
+  --income:#1a9460;--expense:#c03428;
+  --bcv:#007fa8;--euro:#6040b8;--usdt:#197050;--custom:#a07200;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+}
+html.light body::before{
+  background:radial-gradient(ellipse 60% 40% at 10% 0%,rgba(90,148,0,.06) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 50% at 90% 90%,rgba(0,127,168,.05) 0%,transparent 60%);
+}
+html.light header{background:rgba(242,244,247,.94);}
+html.light #sync-bar{background:rgba(242,244,247,.88);}
+html.light .tabs{background:rgba(242,244,247,.8);}
+html.light #splash-screen{background:var(--bg);}
+html.light .splash-glow{background:radial-gradient(circle, rgba(90,148,0,.12) 0%, transparent 70%);}
+html.light .btn-acc{background:var(--accent);color:#fff;}
+html.light .btn-acc:hover{background:#7abf00;}
+html.light .btn-enter{background:var(--accent);color:#fff;}
+html.light .ctog button.active{background:var(--accent);color:#fff;}
+html.light .mo{background:rgba(0,0,0,.45);}
+html.light .md{background:var(--surface);}
+html.light #notif{background:var(--accent);color:#fff;}
+html.light .rs-btn.active.bcv{background:var(--bcv);}
+html.light .rs-btn.active.euro{background:var(--euro);}
+html.light .rs-btn.active.usdt{background:var(--usdt);}
+html.light .rs-btn.active.custom{background:var(--custom);}
+html.light .rs-btn.active{color:#fff;}
+html.light .splash-logo{color:var(--accent);}
+html.light .splash-dot{background:var(--accent);}
+html.light .ct::before{background:var(--accent);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;z-index:0;
@@ -446,7 +480,7 @@ canvas{width:100%!important;}
   background:var(--accent);color:#0c0e13;padding:.68rem 1.1rem;border-radius:9px;
   font-size:.82rem;font-weight:600;opacity:0;transform:translateY(10px);
   transition:all .28s;pointer-events:none;box-shadow:0 4px 22px rgba(200,240,96,.3);}
-#notif.show{opacity:1;transform:none;}
+#notif.show{opacity:1;transform:none;pointer-events:all;cursor:pointer;}
 
 /* MODAL */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;
@@ -606,6 +640,13 @@ canvas{width:100%!important;}
   <div id="header-summary" style="display:flex;align-items:center;gap:.9rem;font-size:.68rem;flex-wrap:wrap"></div>
   <div style="display:flex;align-items:center;gap:.5rem">
     <span id="sync-user" style="color:var(--muted);font-size:.68rem"></span>
+    <button class="btn btn-ghost" style="padding:.18rem .5rem;font-size:.65rem;display:flex;align-items:center;gap:.3rem" onclick="manualSave(this)" title="Guardar ahora">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+      </svg>
+      Guardar
+    </button>
     <button class="btn btn-ghost" style="padding:.18rem .5rem;font-size:.65rem" onclick="manualSync()">Sync</button>
     <button class="btn btn-ghost" style="padding:.18rem .5rem;font-size:.65rem" onclick="signOut()">Salir</button>
   </div>
@@ -680,6 +721,11 @@ canvas{width:100%!important;}
 <div class="panel active" id="panel-dashboard">
   <!-- KPIs del mes -->
   <div class="kpi-row" id="kpi-row"></div>
+  <div id="deficit-alert" style="display:none;align-items:center;gap:.6rem;
+    background:rgba(240,112,96,.08);border:1px solid rgba(240,112,96,.22);
+    border-radius:10px;padding:.62rem 1rem;margin-bottom:1rem;color:var(--expense)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </div>
 
   <!-- Resumen rápido -->
   <div class="g2" style="margin-bottom:1rem">
@@ -756,7 +802,8 @@ canvas{width:100%!important;}
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.95rem;flex-wrap:wrap;gap:.5rem">
       <div class="ct" style="margin-bottom:0">Movimientos del Mes</div>
-      <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+      <div style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
+        <input type="text" id="fsearch" placeholder="Buscar…" oninput="renderMov()" style="width:140px;font-size:.72rem;padding:.26rem .5rem">
         <select id="ft" onchange="renderMov()" style="width:auto;font-size:.72rem;padding:.26rem .5rem">
           <option value="all">Todos</option><option value="income">Ingresos</option><option value="expense">Gastos</option>
         </select>
@@ -788,6 +835,25 @@ canvas{width:100%!important;}
     <div class="cfg-row">
       <div><div class="cfg-label">Cuenta</div><div class="cfg-sub" id="cfg-user">—</div></div>
       <button class="btn btn-del btn-sm" onclick="signOut()">Cerrar sesión</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Apariencia</div>
+    <div class="cfg-row">
+      <div>
+        <div class="cfg-label">Tema</div>
+        <div class="cfg-sub" id="theme-sub">Modo oscuro activo</div>
+      </div>
+      <div style="display:flex;gap:.35rem;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:.2rem .25rem">
+        <button id="theme-dark-btn" onclick="setTheme('dark')" class="rs-btn active bcv" style="gap:.4rem;font-size:.75rem">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          Oscuro
+        </button>
+        <button id="theme-light-btn" onclick="setTheme('light')" class="rs-btn" style="gap:.4rem;font-size:.75rem">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Claro
+        </button>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -1142,7 +1208,7 @@ canvas{width:100%!important;}
   </div>
 </div>
 
-<div id="notif"></div>
+<div id="notif" onclick="notifUndo()"></div>
 
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script src="https://apis.google.com/js/api.js" async></script>
@@ -1167,12 +1233,15 @@ let userEmail    = '';
 
 const SK = 'fp_v4';
 let S = { transactions: [], goals: [] };
-// Guardar en Drive con debounce 2s
+// Persist: localStorage backup instantly + Drive debounce
 function schedSave() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveToDrive, 2000);
+  saveTimer = setTimeout(saveToDrive, 800);
 }
-const persist = () => schedSave();
+function persist() {
+  try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+  schedSave();
+}
 
 // Migrate old schema
 // migrate -> migrateData()
@@ -1324,7 +1393,7 @@ function applyRatesData(data, fromCache = false) {
 
 function forceRefreshRates() {
   try { localStorage.removeItem(RATES_CACHE_KEY); localStorage.removeItem(RATES_CACHE_TS); } catch {}
-  document.getElementById('rate-display').innerHTML = '<span class="rv-loading">⏳ Recargando…</span>';
+  document.getElementById('rate-display').innerHTML = '<span class="rv-loading">Recargando…</span>';
   notify('Recargando tasas…');
   fetchAllRates();
 }
@@ -1439,7 +1508,7 @@ function applyCustomRate() {
   updateRateDisplay();
   updPreview();
   updRateStripInfo();
-  notify('✅ Tasa custom: Bs. ' + fmt(v) + '/$');
+  notify('Tasa Custom: Bs. ' + fmt(v) + '/$');
 }
 
 // ═══════════════════════════════════════════════
@@ -1531,10 +1600,23 @@ function mTxs(y = curY, m = curM) {
 const totInc = txs => txs.filter(t => t.type === 'income').reduce((a, t) => a + (t.amountUSD || 0), 0);
 const totExp = txs => txs.filter(t => t.type === 'expense').reduce((a, t) => a + (t.amountUSD || 0), 0);
 
-function notify(msg) {
+let _undoFn = null, _notifTimer = null;
+function notify(msg, undoFn) {
   const n = document.getElementById('notif');
-  n.textContent = msg; n.classList.add('show');
-  setTimeout(() => n.classList.remove('show'), 2600);
+  clearTimeout(_notifTimer);
+  _undoFn = undoFn || null;
+  n.innerHTML = undoFn
+    ? `<span>${msg}</span><span id="notif-undo" style="margin-left:.7rem;text-decoration:underline;cursor:pointer;opacity:.8">Deshacer</span>`
+    : msg;
+  n.classList.add('show');
+  _notifTimer = setTimeout(() => { n.classList.remove('show'); _undoFn = null; }, undoFn ? 4500 : 2600);
+}
+function notifUndo() {
+  if (!_undoFn) return;
+  _undoFn();
+  _undoFn = null;
+  clearTimeout(_notifTimer);
+  document.getElementById('notif').classList.remove('show');
 }
 
 // ═══════════════════════════════════════════════
@@ -1591,12 +1673,19 @@ function addTx() {
   document.getElementById('tx-desc').value = '';
   document.getElementById('tx-amt').value  = '';
   document.getElementById('tx-preview').innerHTML = '—';
-  notify(type === 'income' ? '✅ Ingreso registrado' : '✅ Gasto registrado');
+  document.getElementById('tx-date').value = new Date().toISOString().slice(0,10);
+  notify(type === 'income' ? 'Ingreso registrado' : 'Gasto registrado');
 }
 
 function delTx(id) {
+  const tx = S.transactions.find(t => t.id === id);
+  if (!tx) return;
   S.transactions = S.transactions.filter(t => t.id !== id);
-  persist(); refreshAll(); notify('Eliminado');
+  persist(); refreshAll();
+  notify('Movimiento eliminado', () => {
+    S.transactions.unshift(tx);
+    persist(); refreshAll(); notify('Movimiento restaurado');
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -1614,7 +1703,7 @@ function addGoal() {
   document.getElementById('gn').value = '';
   document.getElementById('gt').value = '';
   document.getElementById('gs').value = '';
-  notify('🎯 Meta creada');
+  notify('Meta creada');
 }
 
 function depositGoal() {
@@ -1635,18 +1724,21 @@ function depositGoal() {
   persist(); renderMetas(); renderDash();
   document.getElementById('g-amt').value = '';
   document.getElementById('g-prev').textContent = '';
-  notify('💰 Abonado $' + fmt(amtUSD) + ' a "' + g.name + '"');
+  notify('Abono: $' + fmt(amtUSD) + ' a ' + g.name);
 }
 
 function delGoal(id) {
+  const goal = S.goals.find(g => g.id === id);
+  if (!goal) return;
   S.goals = S.goals.filter(g => g.id !== id);
-  persist(); renderMetas(); renderDash(); notify('Meta eliminada');
+  persist(); renderMetas(); renderDash();
+  notify('Meta eliminada', () => { S.goals.push(goal); persist(); renderMetas(); renderDash(); notify('Meta restaurada'); });
 }
 
 // ═══════════════════════════════════════════════
 //  TX HTML
 // ═══════════════════════════════════════════════
-function txHtml(t) {
+function txHtml(t, editMode = false) {
   const icon   = CICONS[t.cat] || '💰';
   const d      = t.date ? t.date.slice(5) : '';
   const rk     = t.rateKey || 'bcv';
@@ -1656,7 +1748,20 @@ function txHtml(t) {
     ? `<span class="txi-bs">Bs. ${fmt(t.amountBS)}</span>` : '';
   const rateBadge = t.rateUsed
     ? `<span class="txi-rate ${rk}">${remoji} ${rlabel} @ ${fmt(t.rateUsed)}</span>` : '';
-  return `<div class="txi">
+
+  if (editMode) {
+    return `<div class="txi" id="txi-${t.id}" style="flex-wrap:wrap;gap:.4rem;background:var(--surface3);border-color:var(--accent)">
+      <div class="txi-ico ${t.type}">${icon}</div>
+      <input id="edit-desc-${t.id}" value="${t.desc.replace(/"/g,'&quot;')}" style="flex:1;min-width:100px;font-size:.8rem;padding:.3rem .5rem">
+      <input id="edit-amt-${t.id}"  type="number" value="${t.amountUSD}" step="0.01" min="0" style="width:90px;font-size:.8rem;padding:.3rem .5rem">
+      <div style="display:flex;gap:.35rem;margin-left:auto">
+        <button class="btn btn-acc btn-sm" onclick="saveTxEdit(${t.id})">Guardar</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderMov()">Cancelar</button>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="txi" id="txi-${t.id}">
     <div class="txi-ico ${t.type}">${icon}</div>
     <div class="txi-info">
       <div class="txi-desc">${t.desc}</div>
@@ -1668,8 +1773,28 @@ function txHtml(t) {
       ${bsLine}
     </div>
     <div class="txi-date">${d}</div>
+    <button class="txi-del" title="Editar" onclick="editTx(${t.id})" style="font-size:.68rem;color:var(--muted)">✎</button>
     <button class="txi-del" onclick="delTx(${t.id})">✕</button>
   </div>`;
+}
+
+function editTx(id) {
+  const t = S.transactions.find(t => t.id === id);
+  if (!t) return;
+  const el = document.getElementById('txi-' + id);
+  if (el) el.outerHTML = txHtml(t, true);
+}
+
+function saveTxEdit(id) {
+  const t = S.transactions.find(t => t.id === id);
+  if (!t) return;
+  const newDesc = document.getElementById('edit-desc-' + id).value.trim();
+  const newAmt  = parseFloat(document.getElementById('edit-amt-' + id).value);
+  if (!newDesc || !newAmt || newAmt <= 0) { notify('Datos inválidos'); return; }
+  t.desc      = newDesc;
+  t.amountUSD = newAmt;
+  if (t.rateUsed) t.amountBS = newAmt * t.rateUsed;
+  persist(); renderMov(); renderDash(); notify('Movimiento actualizado');
 }
 
 // ═══════════════════════════════════════════════
@@ -1684,32 +1809,61 @@ function renderDash() {
 
   document.getElementById('month-label').textContent = MONTHS[curM] + ' ' + curY;
 
+  // Previous month comparison
+  let prevM = curM - 1, prevY = curY;
+  if (prevM < 0) { prevM = 11; prevY--; }
+  const prevTxs = mTxs(prevY, prevM);
+  const prevInc = totInc(prevTxs), prevExp = totExp(prevTxs), prevBal = prevInc - prevExp;
+  const mkDelta = (cur, prev) => {
+    if (!prev) return '';
+    const pct = ((cur - prev) / prev * 100);
+    const sign = pct >= 0 ? '▲' : '▼';
+    const col  = pct >= 0 ? 'var(--income)' : 'var(--expense)';
+    return `<span style="color:${col};font-size:.65rem;margin-left:.3rem">${sign}${Math.abs(pct).toFixed(0)}% vs ${MONTHS[prevM].slice(0,3)}</span>`;
+  };
+
   document.getElementById('kpi-row').innerHTML = `
     <div class="kpi">
       <div class="kpi-label">Ingresos</div>
-      <div class="kpi-value pos">$${fmt(inc)}</div>
+      <div class="kpi-value pos">$${fmt(inc)}${mkDelta(inc, prevInc)}</div>
       <div class="kpi-sub">${br ? '≈ Bs. ' + fmt(inc * br) + ' (' + RATE_LABELS[rk] + ')' : '—'} · ${txs.filter(t => t.type === 'income').length} movim.</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Egresos</div>
-      <div class="kpi-value neg">$${fmt(exp)}</div>
+      <div class="kpi-value neg">$${fmt(exp)}${mkDelta(exp, prevExp)}</div>
       <div class="kpi-sub">${br ? '≈ Bs. ' + fmt(exp * br) + ' (' + RATE_LABELS[rk] + ')' : '—'} · ${txs.filter(t => t.type === 'expense').length} movim.</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Balance</div>
-      <div class="kpi-value ${bal >= 0 ? 'pos' : 'neg'}">$${fmt(bal)}</div>
+      <div class="kpi-value ${bal >= 0 ? 'pos' : 'neg'}">$${fmt(bal)}${mkDelta(bal, prevBal)}</div>
       <div class="kpi-sub">${br ? '≈ Bs. ' + fmt(Math.abs(bal) * br) : '—'}</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Tasa de Ahorro</div>
       <div class="kpi-value acc">${savRate.toFixed(1)}%</div>
-      <div class="kpi-sub">${savRate >= 20 ? '🟢 Excelente' : savRate >= 10 ? '🟡 Aceptable' : '🔴 Mejorar'}</div>
+      <div class="kpi-sub">${savRate >= 20 ? 'Excelente' : savRate >= 10 ? 'Aceptable' : 'Mejorar'}</div>
     </div>`;
+
+  // Deficit alert banner
+  const alertEl = document.getElementById('deficit-alert');
+  if (alertEl) {
+    if (exp > inc && inc > 0) {
+      const overPct = ((exp - inc) / inc * 100).toFixed(0);
+      alertEl.innerHTML = `<span style="font-size:.82rem">Tus gastos superan los ingresos en <strong>$${fmt(exp - inc)}</strong> (${overPct}% por encima)</span>`;
+      alertEl.style.display = 'flex';
+    } else {
+      alertEl.style.display = 'none';
+    }
+  }
 
   const recent = [...S.transactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
   document.getElementById('dash-txl').innerHTML = recent.length
     ? recent.map(txHtml).join('')
-    : '<div class="empty">Sin movimientos aún</div>';
+    : `<div class="empty" style="padding:1.8rem 1rem">
+        <div style="font-size:1.5rem;margin-bottom:.6rem;opacity:.4">◈</div>
+        <div style="font-weight:500;margin-bottom:.3rem">Sin movimientos aún</div>
+        <div style="font-size:.75rem;opacity:.7">Ve a <strong>Movimientos</strong> para registrar tu primer ingreso o gasto</div>
+       </div>`;
 
   renderCatBd(txs, 'cat-bd');
   renderChMain();
@@ -1718,6 +1872,7 @@ function renderDash() {
   renderDashAhorros();
   renderDashInversiones();
   renderHeaderSummary();
+  updateGFTabBadge();
 }
 
 function renderCatBd(txs, id) {
@@ -1749,9 +1904,16 @@ function renderDashAhorros() {
 function renderDashInversiones() {
   const el = document.getElementById('dash-inversiones');
   if (!el) return;
-  if (!S.inversiones || !S.inversiones.length) { el.innerHTML = '<div class="empty">Sin inversiones</div>'; return; }
-  const totalInv = S.inversiones.reduce((a, i) => a + i.invertido, 0);
-  const totalAct = S.inversiones.reduce((a, i) => a + i.actual, 0);
+  if (!S.inversiones || !S.inversiones.length) { el.innerHTML = '<div class="empty">Sin inversiones aún</div>'; return; }
+  let totalInv = 0, totalAct = 0;
+  S.inversiones.forEach(g => {
+    if (!g.compras) return;
+    const inv = g.compras.reduce((a, c) => a + (c.monto || 0), 0);
+    const units = g.compras.reduce((a, c) => a + (c.units || 0), 0);
+    const live = g.wkey && mktData[g.wkey] ? mktData[g.wkey].price : null;
+    totalInv += inv;
+    totalAct += live ? units * live : inv;
+  });
   const gan = totalAct - totalInv;
   const pct = totalInv > 0 ? (gan / totalInv * 100) : 0;
   const s   = pct >= 0 ? '+' : '';
@@ -1761,7 +1923,7 @@ function renderDashInversiones() {
       <div style="font-family:'DM Serif Display',serif;font-size:1.35rem">$${fmt(totalAct)}</div>
       <div style="font-size:.68rem;color:var(--muted)">de $${fmt(totalInv)} invertidos · ${S.inversiones.length} activo${S.inversiones.length !== 1 ? 's' : ''}</div>
     </div>
-    <span class="inv-diff ${dcls}">${s}${pct.toFixed(1)}%&nbsp;${gan >= 0 ? '+' : ''}$${fmt(Math.abs(gan))}</span>
+    <span class="inv-diff ${dcls}">${s}${pct.toFixed(1)}%</span>
   </div>`;
 }
 
@@ -1840,19 +2002,21 @@ function renderGoalProg() {
 //  RENDER MOVIMIENTOS
 // ═══════════════════════════════════════════════
 function renderMov() {
-  const ft   = document.getElementById('ft').value;
-  const fc   = document.getElementById('fc').value;
-  const cats = [...new Set(S.transactions.map(t => t.cat))];
-  const cs   = document.getElementById('fc');
-  const cur  = cs.value;
+  const ft     = document.getElementById('ft').value;
+  const fc     = document.getElementById('fc').value;
+  const search = (document.getElementById('fsearch').value || '').toLowerCase().trim();
+  const cats   = [...new Set(S.transactions.map(t => t.cat))];
+  const cs     = document.getElementById('fc');
+  const cur    = cs.value;
   cs.innerHTML = '<option value="all">Todas las categorías</option>' +
     cats.map(c => `<option value="${c}"${c === cur ? ' selected' : ''}>${c}</option>`).join('');
   let txs = mTxs().sort((a, b) => new Date(b.date) - new Date(a.date));
   if (ft !== 'all') txs = txs.filter(t => t.type === ft);
   if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
+  if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search));
   document.getElementById('full-txl').innerHTML = txs.length
     ? txs.map(txHtml).join('')
-    : '<div class="empty">Sin movimientos para este filtro</div>';
+    : `<div class="empty">${search ? 'Sin resultados para "' + search + '"' : 'Sin movimientos para este filtro'}</div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -2077,6 +2241,26 @@ function toggleGastoFijo(id) {
   persist(); renderGastosFijos(); renderDash();
 }
 
+function updateGFTabBadge() {
+  const tabs = document.querySelectorAll('.tab');
+  const gfTab = [...tabs].find(t => t.textContent.replace(/\s/g,'').startsWith('GastosFijos') || t.getAttribute('onclick')?.includes('gastos-fijos'));
+  if (!gfTab) return;
+  const today = new Date().getDate();
+  const pronto = S.gastosFijos ? S.gastosFijos.filter(g => {
+    const paid = S.gfPagos && S.gfPagos[gfKey(g.id)];
+    return !paid && (g.dia <= today + 3);
+  }).length : 0;
+  const existing = gfTab.querySelector('.tab-badge');
+  if (existing) existing.remove();
+  if (pronto > 0) {
+    const b = document.createElement('span');
+    b.className = 'tab-badge';
+    b.textContent = pronto;
+    b.style.cssText = 'background:var(--custom);color:#0c0e13;border-radius:99px;font-size:.6rem;padding:1px 5px;margin-left:4px;font-weight:700;vertical-align:middle';
+    gfTab.appendChild(b);
+  }
+}
+
 function renderGastosFijos() {
   if (!S.gastosFijos) return;
   const filtro  = document.getElementById('gf-filtro') ? document.getElementById('gf-filtro').value : 'all';
@@ -2179,6 +2363,8 @@ function addAhorro() {
 
   persist(); renderAhorros(); refreshAll();
   document.getElementById('ah-monto').value = '';
+  document.getElementById('ah-desc').value  = '';
+  notify('Movimiento registrado');
   document.getElementById('ah-desc').value  = '';
   notify(ahTipo === 'deposito' ? '✅ Depósito registrado' : '✅ Retiro registrado');
 }
@@ -2385,10 +2571,19 @@ function delCompra(groupId, compraId) {
   const group = S.inversiones.find(g => g.id === groupId);
   if (!group) return;
   const compra = group.compras.find(c => c.id === compraId);
-  if (compra) S.transactions = S.transactions.filter(t => t.id !== compra.id + 1);
+  if (!compra) return;
+  const relTx = S.transactions.find(t => t.id === compra.id + 1);
+  S.transactions = S.transactions.filter(t => t.id !== compra.id + 1);
   group.compras = group.compras.filter(c => c.id !== compraId);
-  if (!group.compras.length) S.inversiones = S.inversiones.filter(g => g.id !== groupId);
-  persist(); renderInversiones(); refreshAll(); notify('Compra eliminada');
+  const wasLast = !group.compras.length;
+  if (wasLast) S.inversiones = S.inversiones.filter(g => g.id !== groupId);
+  persist(); renderInversiones(); refreshAll();
+  notify('Compra eliminada', () => {
+    if (wasLast) { group.compras = [compra]; S.inversiones.push(group); }
+    else { const g2 = S.inversiones.find(g => g.id === groupId); if (g2) g2.compras.push(compra); }
+    if (relTx) S.transactions.unshift(relTx);
+    persist(); renderInversiones(); refreshAll(); notify('Compra restaurada');
+  });
 }
 
 function toggleCompras(id) {
@@ -2489,9 +2684,9 @@ function renderInversiones() {
           <div style="font-size:.62rem;color:var(--muted)">${g.compras.length} compra${g.compras.length!==1?'s':''}</div>
         </div>
         <div class="inv-num">
-          <div class="inv-num-lbl">Unidades</div>
+          <div class="inv-num-lbl">Unidades · P. prom.</div>
           <div class="inv-num-val" style="font-size:.88rem">${unitsStr}</div>
-          <div style="font-size:.62rem;color:var(--muted)">${g.sym}</div>
+          <div style="font-size:.62rem;color:var(--muted)">$${totalUnits > 0 ? (totalMonto/totalUnits).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4}) : '—'} / ${g.sym}</div>
         </div>
         <div class="inv-num">
           <div class="inv-num-lbl">Valor actual</div>
@@ -2954,6 +3149,7 @@ async function loadFromDrive() {
 
 async function saveToDrive() {
   if (!accessToken) return;
+  if (!navigator.onLine) { setSyncStatus('warn','Sin conexión — guardado local'); return; }
   setSyncStatus('spin', 'Guardando en Drive…');
   try {
     const body = JSON.stringify(S, null, 2);
@@ -2981,11 +3177,58 @@ async function saveToDrive() {
     const cl = document.getElementById('cfg-lastsave');
     if (cl) cl.textContent = new Date().toLocaleString('es-VE');
   } catch (e) {
-    setSyncStatus('err', 'Error al guardar: ' + e.message);
+    setSyncStatus('err', 'Sin conexión — guardado local');
+    try { localStorage.setItem('fp_offline_dirty', '1'); } catch {}
   }
 }
 
+function loadLocalBackup() {
+  try {
+    const raw = localStorage.getItem('fp_local_backup');
+    if (raw) { const d = JSON.parse(raw); migrateData(d); Object.assign(S, d); }
+  } catch {}
+}
+
+window.addEventListener('online', () => {
+  try {
+    if (localStorage.getItem('fp_offline_dirty') && accessToken) {
+      localStorage.removeItem('fp_offline_dirty');
+      saveToDrive().then(() => notify('Conexión restaurada — datos sincronizados'));
+    }
+  } catch {}
+});
+window.addEventListener('offline', () => setSyncStatus('warn', 'Sin conexión — guardado local'));
+
 function manualSync() { clearTimeout(saveTimer); saveToDrive(); }
+
+// ═══════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════
+function setTheme(t) {
+  document.documentElement.classList.toggle('light', t === 'light');
+  localStorage.setItem('fp_theme', t);
+  const sub = document.getElementById('theme-sub');
+  if (sub) sub.textContent = t === 'light' ? 'Modo claro activo' : 'Modo oscuro activo';
+  const db = document.getElementById('theme-dark-btn');
+  const lb = document.getElementById('theme-light-btn');
+  if (db) { db.classList.toggle('active', t === 'dark'); db.classList.toggle('bcv', t === 'dark'); }
+  if (lb) { lb.classList.toggle('active', t === 'light'); lb.classList.toggle('bcv', t === 'light'); }
+  const mc = document.querySelector('meta[name="theme-color"]');
+  if (mc) mc.content = t === 'light' ? '#f2f4f7' : '#0c0e13';
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('fp_theme') || 'dark';
+  setTheme(saved);
+}
+
+async function manualSave(btn) {
+  clearTimeout(saveTimer);
+  if (btn) btn.disabled = true;
+  await saveToDrive();
+  if (btn) btn.disabled = false;
+  notify('Guardado en Drive');
+}
 
 // ── Export / Import ──
 function exportBackup() {
