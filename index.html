@@ -3,39 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FinanzasPersonales · Venezuela</title>
+<title>Vault</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="apple-mobile-web-app-title" content="Vault">
 <meta name="theme-color" content="#0c0e13">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0c0e13;--surface:#12151d;--surface2:#181c27;--surface3:#1f2333;
-  --border:#252a3d;--border2:#2e3450;
+  --bg:#080a0f;--surface:#0f1117;--surface2:#141720;--surface3:#1a1e2a;
+  --border:#1e2230;--border2:#262c3e;
   --accent:#c8f060;--accent2:#60d4f0;--accent3:#f060a8;
-  --text:#e8eaf2;--muted:#6b7280;--dim:#9ca3af;
-  --income:#60f0a8;--expense:#f07860;--r:12px;
+  --text:#eaecf4;--muted:#5a6278;--dim:#8892a8;
+  --income:#4fd89a;--expense:#f07060;--r:14px;
   --bcv:#60d4f0;--euro:#c8a0f0;--usdt:#26a17b;--custom:#f0c060;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
 body::before{content:'';position:fixed;inset:0;z-index:0;
-  background:radial-gradient(ellipse 70% 50% at 15% 5%,rgba(200,240,96,.05) 0%,transparent 55%),
-             radial-gradient(ellipse 50% 60% at 85% 85%,rgba(96,212,240,.04) 0%,transparent 55%),
-             radial-gradient(ellipse 40% 40% at 55% 35%,rgba(240,96,168,.03) 0%,transparent 55%);
+  background:radial-gradient(ellipse 60% 40% at 10% 0%,rgba(200,240,96,.04) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 50% at 90% 90%,rgba(96,212,240,.03) 0%,transparent 60%);
   pointer-events:none;}
 .app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
 
 /* HEADER */
 header{display:flex;align-items:center;justify-content:space-between;
-  padding:.9rem 2rem;border-bottom:1px solid var(--border);
-  backdrop-filter:blur(14px);position:sticky;top:0;z-index:50;
-  background:rgba(12,14,19,.88);gap:.8rem;flex-wrap:wrap;}
-.logo{font-family:'DM Serif Display',serif;font-size:1.35rem;letter-spacing:-.02em;
-  display:flex;align-items:center;gap:.4rem;}
-.logo span{color:var(--accent);}
+  padding:.85rem 2rem;border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;
+  background:rgba(8,10,15,.92);gap:.8rem;flex-wrap:wrap;}
+.logo{font-family:'DM Serif Display',serif;font-size:1.25rem;letter-spacing:-.03em;
+  display:flex;align-items:center;gap:.2rem;font-weight:400;}
+.logo span{color:var(--accent);opacity:.9;}
 .header-mid{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;}
 .month-nav{display:flex;align-items:center;gap:.5rem;}
 .month-nav button{background:var(--surface2);border:1px solid var(--border);color:var(--text);
@@ -70,8 +70,8 @@ header{display:flex;align-items:center;justify-content:space-between;
   border-radius:99px;padding:.28rem .85rem;font-size:.76rem;white-space:nowrap;cursor:pointer;}
 /* SYNC BAR */
 #sync-bar{display:flex;align-items:center;justify-content:space-between;
-  padding:.38rem 2rem;font-size:.72rem;border-bottom:1px solid var(--border);
-  background:rgba(12,14,19,.7);gap:.6rem;flex-wrap:wrap;}
+  padding:.32rem 2rem;font-size:.68rem;border-bottom:1px solid var(--border);
+  background:rgba(8,10,15,.85);gap:.6rem;flex-wrap:wrap;letter-spacing:.01em;}
 .sync-status{display:flex;align-items:center;gap:.4rem;}
 .sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .sync-dot.ok{background:var(--income);}
@@ -142,11 +142,15 @@ header{display:flex;align-items:center;justify-content:space-between;
 }
 /* MERCADO */
 .mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem;margin-top:1rem;}
-.mkt-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;position:relative;overflow:hidden;cursor:grab;transition:box-shadow .18s,opacity .18s,border-color .18s;}
-.mkt-card:hover{border-color:var(--border2);}
+.mkt-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1rem;position:relative;overflow:hidden;cursor:grab;transition:box-shadow .18s,opacity .18s,border-color .18s;box-shadow:var(--shadow);}
+.mkt-card:hover{border-color:var(--border2);transform:translateY(-1px);}
 .mkt-card.dragging{opacity:.45;cursor:grabbing;box-shadow:0 8px 32px rgba(0,0,0,.5);border-color:var(--accent);}
 .mkt-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);}
-.mkt-drag-handle{position:absolute;top:.5rem;right:.5rem;color:var(--border2);font-size:.75rem;cursor:grab;user-select:none;}
+.mkt-drag-handle{position:absolute;top:.5rem;right:1.6rem;color:var(--border2);font-size:.8rem;cursor:grab;user-select:none;line-height:1;}
+.mkt-close{position:absolute;top:.4rem;right:.45rem;background:none;border:none;
+  color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:2px 4px;
+  border-radius:5px;transition:color .14s,background .14s;z-index:2;}
+.mkt-close:hover{color:var(--expense);background:rgba(240,112,96,.1);}
 .mkt-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
 .mkt-sym{font-weight:700;font-size:.88rem;}
 .mkt-name{font-size:.68rem;color:var(--muted);flex:1;}
@@ -213,8 +217,8 @@ header{display:flex;align-items:center;justify-content:space-between;
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* TABS */
-.tabs{display:flex;gap:.35rem;padding:.55rem 2rem 0;border-bottom:1px solid var(--border);}
-.tab{padding:.5rem 1rem;cursor:pointer;border-radius:8px 8px 0 0;
+.tabs{display:flex;gap:.2rem;padding:.5rem 2rem 0;border-bottom:1px solid var(--border);background:rgba(8,10,15,.7);}
+.tab{padding:.48rem 1rem;cursor:pointer;border-radius:8px 8px 0 0;
   font-size:.78rem;font-weight:500;color:var(--muted);
   border:1px solid transparent;border-bottom:none;transition:all .18s;
   letter-spacing:.03em;text-transform:uppercase;}
@@ -481,13 +485,13 @@ canvas{width:100%!important;}
 <body>
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
-  <div class="login-logo">💰 Finanzas.</div>
-  <div class="login-sub">Tu gestor financiero personal sincronizado en todos tus dispositivos vía Google Drive.</div>
+  <div class="login-logo">Vault</div>
+  <div class="login-sub">Gestor financiero personal. Tus datos, en tu Drive.</div>
   <button class="btn-google" onclick="signIn()">
     <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
     Iniciar sesión con Google
   </button>
-  <div class="login-note">Solo se accede a un archivo de datos en tu propio Drive. Ninguna información se comparte con terceros.</div>
+  <div class="login-note">Acceso únicamente a un archivo en tu Drive. Sin servidores intermedios.</div>
 </div>
 
 <div class="app" id="main-app" style="display:none">
@@ -500,14 +504,14 @@ canvas{width:100%!important;}
   </div>
   <div style="display:flex;align-items:center;gap:.7rem">
     <span id="sync-user" style="color:var(--muted)"></span>
-    <button class="btn btn-ghost" style="padding:.22rem .6rem;font-size:.68rem" onclick="manualSync()">↻ Sync</button>
+    <button class="btn btn-ghost" style="padding:.22rem .6rem;font-size:.68rem" onclick="manualSync()">Sync</button>
     <button class="btn btn-ghost" style="padding:.22rem .6rem;font-size:.68rem" onclick="signOut()">Salir</button>
   </div>
 </div>
 
 <!-- HEADER -->
 <header>
-  <div class="logo">💰 Finanzas<span>.</span></div>
+  <div class="logo">Vault<span>.</span></div>
   <div class="header-mid">
     <div class="month-nav">
       <button onclick="chMonth(-1)">‹</button>
@@ -537,7 +541,7 @@ canvas{width:100%!important;}
       <span id="diff-change" style="font-size:.65rem;font-weight:600;letter-spacing:.01em"></span>
     </div>
   </div>
-  <div style="font-size:.72rem;color:var(--muted)">uso personal</div>
+  
 </header>
 
 <!-- TABS -->
@@ -547,9 +551,9 @@ canvas{width:100%!important;}
   <div class="tab" onclick="goTab('metas')">Metas de Ahorro</div>
   <div class="tab" onclick="goTab('analisis')">Análisis</div>
   <div class="tab" onclick="goTab('gastos-fijos')">Gastos Fijos</div>
-  <div class="tab" onclick="goTab('ahorros')">💰 Ahorros</div>
-  <div class="tab" onclick="goTab('inversiones')">📈 Inversiones</div>
-  <div class="tab" onclick="goTab('config')">⚙️ Config</div>
+  <div class="tab" onclick="goTab('ahorros')">Ahorros</div>
+  <div class="tab" onclick="goTab('inversiones')">Inversiones</div>
+  <div class="tab" onclick="goTab('config')">Config</div>
 </div>
 
 <main>
@@ -690,7 +694,7 @@ canvas{width:100%!important;}
     <div class="ct">Google Drive</div>
     <div class="cfg-row">
       <div><div class="cfg-label">Archivo de datos</div><div class="cfg-sub" id="cfg-filename">—</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="manualSync()">↻ Sincronizar ahora</button>
+      <button class="btn btn-ghost btn-sm" onclick="manualSync()">Sincronizar ahora</button>
     </div>
     <div class="cfg-row">
       <div><div class="cfg-label">Último guardado</div><div class="cfg-sub" id="cfg-lastsave">—</div></div>
@@ -704,12 +708,12 @@ canvas{width:100%!important;}
     <div class="ct">Respaldo de datos</div>
     <div class="cfg-row">
       <div><div class="cfg-label">Exportar respaldo local</div><div class="cfg-sub">Descarga un .json con todos tus datos</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="exportBackup()">⬇ Exportar</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportBackup()">Exportar</button>
     </div>
     <div class="cfg-row">
       <div><div class="cfg-label">Importar respaldo</div><div class="cfg-sub">Restaura desde un .json exportado</div></div>
       <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center">
-        ⬆ Importar<input type="file" accept=".json" onchange="importBackup(event)" style="display:none">
+        Importar<input type="file" accept=".json" onchange="importBackup(event)" style="display:none">
       </label>
     </div>
   </div>
@@ -723,7 +727,7 @@ canvas{width:100%!important;}
 
   <!-- Agregar gasto fijo -->
   <div class="card" style="margin-bottom:1rem">
-    <div class="ct">Agregar Gasto Fijo</div>
+    <div class="ct">Gasto Fijo</div>
     <div class="fg fg-tx-top" style="margin-bottom:.65rem">
       <div style="grid-column:span 2"><label>Nombre</label>
         <input type="text" id="gf-name" placeholder="Ej: Electricidad, Netflix…"></div>
@@ -787,8 +791,8 @@ canvas{width:100%!important;}
     <div class="fg fg-tx-bot" style="margin-bottom:.65rem">
       <div><label>Tipo</label>
         <div class="ctog">
-          <button class="active" id="ah-btn-dep" onclick="setAhTipo('deposito')">⬆ Depósito</button>
-          <button id="ah-btn-ret" onclick="setAhTipo('retiro')">⬇ Retiro</button>
+          <button class="active" id="ah-btn-dep" onclick="setAhTipo('deposito')">Depositar</button>
+          <button id="ah-btn-ret" onclick="setAhTipo('retiro')">Retirar</button>
         </div></div>
       <div><label>Monto (USD)</label>
         <input type="number" id="ah-monto" placeholder="0.00" min="0" step="0.01"></div>
@@ -809,7 +813,7 @@ canvas{width:100%!important;}
 <div class="panel" id="panel-inversiones">
   <div class="inv-summary" id="inv-summary"></div>
   <div class="card" style="margin-bottom:1rem">
-    <div class="ct">Agregar Inversión</div>
+    <div class="ct">Nueva Inversión</div>
     <div class="fg fg-tx-top" style="margin-bottom:.65rem">
       <div style="grid-column:span 2"><label>Nombre</label>
         <input type="text" id="inv-name" placeholder="Ej: Bitcoin, Tesla, Apartamento…"></div>
@@ -846,10 +850,10 @@ canvas{width:100%!important;}
   <!-- MERCADO -->
   <div class="card" style="margin-top:1rem">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem">
-      <div class="ct" style="margin-bottom:0">📡 Mercado en Tiempo Real</div>
+      <div class="ct" style="margin-bottom:0">Mercado en Tiempo Real</div>
       <div style="display:flex;gap:.45rem;align-items:center">
         <span id="mkt-update" style="font-size:.65rem;color:var(--muted)">—</span>
-        <button class="btn btn-ghost btn-sm" onclick="refreshMarket()">↻ Actualizar</button>
+        <button class="btn btn-ghost btn-sm" onclick="refreshMarket()">Actualizar</button>
       </div>
     </div>
     <!-- Watchlist editor -->
@@ -963,7 +967,7 @@ canvas{width:100%!important;}
     </div>
 
     <div style="margin-top:1.1rem;display:flex;justify-content:space-between;align-items:center;gap:.7rem;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="forceRefreshRates()" style="font-size:.74rem">🔄 Recargar tasas</button>
+      <button class="btn btn-ghost" onclick="forceRefreshRates()" style="font-size:.74rem"> Recargar tasas</button>
       <button class="btn btn-acc" onclick="closeModal()">Cerrar</button>
     </div>
   </div>
@@ -1152,7 +1156,7 @@ function applyRatesData(data, fromCache = false) {
 function forceRefreshRates() {
   try { localStorage.removeItem(RATES_CACHE_KEY); localStorage.removeItem(RATES_CACHE_TS); } catch {}
   document.getElementById('rate-display').innerHTML = '<span class="rv-loading">⏳ Recargando…</span>';
-  notify('🔄 Recargando tasas…');
+  notify('Recargando tasas…');
   fetchAllRates();
 }
 
@@ -1259,7 +1263,7 @@ function populateModal() {
 
 function applyCustomRate() {
   const v = parseFloat(document.getElementById('custom-rate-input').value);
-  if (!v || v <= 0) { notify('⚠️ Ingresa una tasa válida'); return; }
+  if (!v || v <= 0) { notify('Ingresa una tasa válida'); return; }
   rates.custom = { promedio: v, compra: v, venta: v, fecha: new Date().toISOString().slice(0, 10), fuente: 'Manual' };
   localStorage.setItem('fp_custom_rate', String(v));
   populateModal();
@@ -1392,7 +1396,7 @@ function addTx() {
   const rawAmt = parseFloat(document.getElementById('tx-amt').value);
   const date   = document.getElementById('tx-date').value;
   const cat    = document.getElementById('tx-cat').value;
-  if (!desc || !rawAmt || rawAmt <= 0 || !date) { notify('⚠️ Completa todos los campos'); return; }
+  if (!desc || !rawAmt || rawAmt <= 0 || !date) { notify('Completa todos los campos'); return; }
 
   const rate = activeRate();
   let amountUSD, amountBS = null, rateUsed = null;
@@ -1401,7 +1405,7 @@ function addTx() {
     amountUSD = rawAmt;
     if (rate) { amountBS = rawAmt * rate; rateUsed = rate; }
   } else {
-    if (!rate) { notify('⚠️ Sin tasa activa — configura una o usa Custom'); return; }
+    if (!rate) { notify('Sin tasa activa — configura una o usa Custom'); return; }
     amountUSD = rawAmt / rate;
     amountBS  = rawAmt;
     rateUsed  = rate;
@@ -1422,7 +1426,7 @@ function addTx() {
 
 function delTx(id) {
   S.transactions = S.transactions.filter(t => t.id !== id);
-  persist(); refreshAll(); notify('🗑️ Eliminado');
+  persist(); refreshAll(); notify('Eliminado');
 }
 
 // ═══════════════════════════════════════════════
@@ -1434,7 +1438,7 @@ function addGoal() {
   const saved  = parseFloat(document.getElementById('gs').value) || 0;
   const deadline = document.getElementById('gd').value;
   const icon   = document.getElementById('gi-ico').value.split(' ')[0];
-  if (!name || !target || target <= 0) { notify('⚠️ Nombre y objetivo requeridos'); return; }
+  if (!name || !target || target <= 0) { notify('Nombre y objetivo requeridos'); return; }
   S.goals.push({ id: Date.now(), name, target, saved, deadline, icon });
   persist(); renderMetas();
   document.getElementById('gn').value = '';
@@ -1446,15 +1450,15 @@ function addGoal() {
 function depositGoal() {
   const id     = parseInt(document.getElementById('goal-sel').value);
   const rawAmt = parseFloat(document.getElementById('g-amt').value);
-  if (!rawAmt || rawAmt <= 0) { notify('⚠️ Ingresa un monto'); return; }
+  if (!rawAmt || rawAmt <= 0) { notify('Ingresa un monto'); return; }
   const g = S.goals.find(g => g.id === id);
-  if (!g) { notify('⚠️ Selecciona una meta'); return; }
+  if (!g) { notify('Selecciona una meta'); return; }
   let amtUSD;
   if (gCur === 'USD') {
     amtUSD = rawAmt;
   } else {
     const rate = activeRate();
-    if (!rate) { notify('⚠️ Sin tasa activa'); return; }
+    if (!rate) { notify('Sin tasa activa'); return; }
     amtUSD = rawAmt / rate;
   }
   g.saved = Math.min(g.saved + amtUSD, g.target);
@@ -1466,7 +1470,7 @@ function depositGoal() {
 
 function delGoal(id) {
   S.goals = S.goals.filter(g => g.id !== id);
-  persist(); renderMetas(); renderDash(); notify('🗑️ Meta eliminada');
+  persist(); renderMetas(); renderDash(); notify('Meta eliminada');
 }
 
 // ═══════════════════════════════════════════════
@@ -1804,12 +1808,12 @@ function addGastoFijo() {
   const dia   = parseInt(document.getElementById('gf-dia').value) || 1;
   const cat   = document.getElementById('gf-cat').value;
   const ico   = document.getElementById('gf-ico').value;
-  if (!name || !monto || monto <= 0) { notify('⚠️ Nombre y monto requeridos'); return; }
+  if (!name || !monto || monto <= 0) { notify('Nombre y monto requeridos'); return; }
 
   const rate = activeRate();
   let montoUSD = monto;
   if (gfCur === 'BS') {
-    if (!rate) { notify('⚠️ Sin tasa activa para convertir'); return; }
+    if (!rate) { notify('Sin tasa activa para convertir'); return; }
     montoUSD = monto / rate;
   }
 
@@ -1818,14 +1822,14 @@ function addGastoFijo() {
   document.getElementById('gf-name').value  = '';
   document.getElementById('gf-monto').value = '';
   document.getElementById('gf-dia').value   = '';
-  notify('✅ Gasto fijo agregado');
+  notify('Gasto fijo agregado');
 }
 
 function delGastoFijo(id) {
   S.gastosFijos = S.gastosFijos.filter(g => g.id !== id);
   // Limpiar pagos de este gasto
   Object.keys(S.gfPagos).forEach(k => { if (k.startsWith(id + '_')) delete S.gfPagos[k]; });
-  persist(); renderGastosFijos(); renderDash(); notify('🗑️ Eliminado');
+  persist(); renderGastosFijos(); renderDash(); notify('Eliminado');
 }
 
 // Clave única por gasto+mes: "id_YYYY-MM"
@@ -1843,7 +1847,7 @@ function toggleGastoFijo(id) {
     const txId = S.gfPagos[key].txId;
     if (txId) S.transactions = S.transactions.filter(t => t.id !== txId);
     delete S.gfPagos[key];
-    notify('↩️ Marcado como pendiente');
+    notify('Marcado como pendiente');
   } else {
     // Marcar como pagado: crear transacción automática
     const rate = activeRate();
@@ -1862,7 +1866,7 @@ function toggleGastoFijo(id) {
     };
     S.transactions.unshift(tx);
     S.gfPagos[key] = { txId: tx.id, fecha: new Date().toISOString() };
-    notify('✅ Pagado y registrado en Movimientos');
+    notify('Pagado y registrado en Movimientos');
   }
   persist(); renderGastosFijos(); renderDash();
 }
@@ -1914,7 +1918,7 @@ function renderGastosFijos() {
     const vencido = !pagado && g.dia < today;
     const cls     = pagado ? 'pagado' : vencido ? 'vencido' : '';
     const bsLine  = br ? `<div style="font-size:.65rem;color:var(--muted)">≈ Bs. ${fmt(g.montoUSD * br)}</div>` : '';
-    const diaLbl  = pagado ? '✓ Pagado' : (vencido ? '⚠️ Vencido día ' + g.dia : 'Vence día ' + g.dia);
+    const diaLbl  = pagado ? '✓ Pagado' : (vencido ? 'Vencido día ' + g.dia : 'Vence día ' + g.dia);
     return `<div class="gf-item ${cls}">
       <div class="gf-ico">${g.ico}</div>
       <div class="gf-info">
@@ -1944,8 +1948,8 @@ function setAhTipo(t) {
 function addAhorro() {
   const monto = parseFloat(document.getElementById('ah-monto').value);
   const desc  = document.getElementById('ah-desc').value.trim() || (ahTipo === 'deposito' ? 'Depósito a ahorros' : 'Retiro de ahorros');
-  if (!monto || monto <= 0) { notify('⚠️ Ingresa un monto válido'); return; }
-  if (ahTipo === 'retiro' && monto > S.ahorros.saldo) { notify('⚠️ Saldo insuficiente'); return; }
+  if (!monto || monto <= 0) { notify('Ingresa un monto válido'); return; }
+  if (ahTipo === 'retiro' && monto > S.ahorros.saldo) { notify('Saldo insuficiente'); return; }
 
   const rate = activeRate();
   const mov = {
@@ -1979,7 +1983,7 @@ function delAhorro(id) {
   S.ahorros.saldo = +(S.ahorros.saldo - (mov.tipo === 'deposito' ? mov.monto : -mov.monto)).toFixed(2);
   S.ahorros.movimientos = S.ahorros.movimientos.filter(m => m.id !== id);
   S.transactions = S.transactions.filter(t => t.id !== id + 1);
-  persist(); renderAhorros(); refreshAll(); notify('🗑️ Eliminado');
+  persist(); renderAhorros(); refreshAll(); notify('Eliminado');
 }
 
 function renderAhorros() {
@@ -2013,7 +2017,7 @@ function addInversion() {
   const invertido = parseFloat(document.getElementById('inv-invertido').value);
   const actual    = parseFloat(document.getElementById('inv-actual').value) || invertido;
   const desc      = document.getElementById('inv-desc').value.trim();
-  if (!name || !invertido || invertido <= 0) { notify('⚠️ Nombre y monto requeridos'); return; }
+  if (!name || !invertido || invertido <= 0) { notify('Nombre y monto requeridos'); return; }
 
   const rate = activeRate();
   const inv = { id: Date.now(), name, tipo, ico, invertido, actual, desc, fecha: new Date().toISOString().slice(0,10) };
@@ -2033,23 +2037,23 @@ function addInversion() {
 
   persist(); renderInversiones(); refreshAll();
   ['inv-name','inv-invertido','inv-actual','inv-desc'].forEach(id => document.getElementById(id).value = '');
-  notify('✅ Inversión agregada');
+  notify('Inversión agregada');
 }
 
 function updateInvActual(id) {
   const val = parseFloat(document.getElementById('inv-actual-' + id).value);
-  if (isNaN(val) || val < 0) { notify('⚠️ Valor inválido'); return; }
+  if (isNaN(val) || val < 0) { notify('Valor inválido'); return; }
   const inv = S.inversiones.find(i => i.id === id);
   if (!inv) return;
   inv.actual = val;
   inv.ultimaActualizacion = new Date().toISOString().slice(0,10);
-  persist(); renderInversiones(); renderDash(); notify('✅ Valor actualizado');
+  persist(); renderInversiones(); renderDash(); notify('Valor actualizado');
 }
 
 function delInversion(id) {
   S.inversiones = S.inversiones.filter(i => i.id !== id);
   S.transactions = S.transactions.filter(t => t.id !== id + 1);
-  persist(); renderInversiones(); refreshAll(); notify('🗑️ Eliminado');
+  persist(); renderInversiones(); refreshAll(); notify('Eliminado');
 }
 
 function renderInversiones() {
@@ -2123,7 +2127,7 @@ function addToWatchlist() {
   if (!S.watchlist.includes(val)) {
     S.watchlist.push(val);
     persist(); renderWatchlistTags(); refreshMarket();
-    notify('✅ Agregado a watchlist');
+    notify('Agregado a watchlist');
   } else { notify('Ya está en tu watchlist'); }
 }
 
@@ -2162,7 +2166,31 @@ function renderWatchlistTags() {
   }).join('');
 }
 
+// Crypto ID → Binance symbol map
+const BINANCE_SYM = {
+  bitcoin:'BTCUSDT', ethereum:'ETHUSDT', solana:'SOLUSDT', binancecoin:'BNBUSDT',
+  ripple:'XRPUSDT', cardano:'ADAUSDT', dogecoin:'DOGEUSDT', litecoin:'LTCUSDT',
+  polkadot:'DOTUSDT', avalanche:'AVAXUSDT', chainlink:'LINKUSDT', uniswap:'UNIUSDT'
+};
+
 async function fetchCryptoData(coinId, sym) {
+  // Try Binance first (no rate limit, no key needed)
+  const binSym = BINANCE_SYM[coinId];
+  if (binSym) {
+    try {
+      const [tickerRes, histRes] = await Promise.all([
+        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${binSym}`),
+        fetch(`https://api.binance.com/api/v3/klines?symbol=${binSym}&interval=1d&limit=8`)
+      ]);
+      const ticker = await tickerRes.json();
+      const klines = await histRes.json();
+      const price  = parseFloat(ticker.lastPrice);
+      const change = parseFloat(ticker.priceChangePercent);
+      const history = Array.isArray(klines) ? klines.map(k => parseFloat(k[4])) : [];
+      if (price) return { price, change, history, sym, type: 'crypto' };
+    } catch {}
+  }
+  // Fallback: CoinGecko
   try {
     const [priceRes, histRes] = await Promise.all([
       fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`),
@@ -2173,8 +2201,9 @@ async function fetchCryptoData(coinId, sym) {
     const price  = priceData[coinId]?.usd;
     const change = priceData[coinId]?.usd_24h_change;
     const history = histData.prices ? histData.prices.map(p => p[1]) : [];
-    return { price, change, history, sym, type: 'crypto' };
-  } catch { return null; }
+    if (price) return { price, change, history, sym, type: 'crypto' };
+  } catch {}
+  return null;
 }
 
 const FINNHUB_KEY = 'd6pehn9r01qo88ait1fgd6pehn9r01qo88ait1g0';
@@ -2237,11 +2266,12 @@ function renderMarketGrid(loading = false) {
     if (loading || !d) {
       return `<div class="mkt-card" draggable="true" data-key="${key}">
         <div class="mkt-drag-handle">⠿</div>
+        <button class="mkt-close" onclick="removeFromWatchlist('${key}')" title="Quitar">×</button>
         <div class="mkt-top">
           <span class="mkt-sym">${symLabel}</span>
           <span class="mkt-badge ${type}">${type === 'crypto' ? 'Crypto' : 'Acción'}</span>
         </div>
-        <div class="mkt-loading">${loading ? '⏳ Cargando…' : '⚠️ Sin datos'}</div>
+        <div class="mkt-loading">${loading ? 'Cargando…' : 'Sin datos'}</div>
       </div>`;
     }
 
@@ -2252,6 +2282,7 @@ function renderMarketGrid(loading = false) {
 
     return `<div class="mkt-card" draggable="true" data-key="${key}">
       <div class="mkt-drag-handle">⠿</div>
+      <button class="mkt-close" onclick="removeFromWatchlist('${key}')" title="Quitar">×</button>
       <div class="mkt-top">
         <span class="mkt-sym">${symLabel}</span>
         <span class="mkt-name">${type === 'crypto' ? id : ''}</span>
@@ -2514,8 +2545,8 @@ function importBackup(e) {
     try {
       S = migrateData(JSON.parse(ev.target.result));
       persist(); refreshAll(); renderMetas();
-      notify('✅ Datos importados correctamente');
-    } catch { notify('⚠️ Archivo inválido'); }
+      notify('Datos importados correctamente');
+    } catch { notify('Archivo inválido'); }
   };
   reader.readAsText(file); e.target.value = '';
 }
