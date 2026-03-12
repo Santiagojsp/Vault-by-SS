@@ -79,16 +79,63 @@ header{display:flex;align-items:center;justify-content:space-between;
 .sync-dot.err{background:var(--expense);}
 .sync-dot.spin{background:var(--accent2);animation:pulse .8s infinite;}
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);z-index:999;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:1.5rem;text-align:center;padding:2rem;}
-#login-screen.hidden{display:none;}
+/* ── SPLASH / LOGIN SCREENS ── */
+#splash-screen{position:fixed;inset:0;z-index:1000;
+  background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:0;text-align:center;padding:2rem;
+  transition:opacity .55s cubic-bezier(.4,0,.2,1), transform .55s cubic-bezier(.4,0,.2,1);}
+#splash-screen.exit{opacity:0;transform:scale(1.04);pointer-events:none;}
+
+/* Animated radial glow behind logo */
+.splash-glow{position:absolute;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle, rgba(200,240,96,.07) 0%, transparent 70%);
+  animation:splashPulse 3s ease-in-out infinite;pointer-events:none;}
+@keyframes splashPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.15);opacity:1}}
+
+/* Logo entrance */
+.splash-logo-wrap{position:relative;z-index:1;margin-bottom:2rem;
+  animation:splashLogoIn .7s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes splashLogoIn{from{opacity:0;transform:translateY(18px) scale(.92)}to{opacity:1;transform:none}}
+.splash-logo{font-family:'DM Serif Display',serif;font-size:3.8rem;
+  color:var(--accent);letter-spacing:-.02em;line-height:1;}
+.splash-by{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin-top:.3rem;font-family:'DM Sans',sans-serif;}
+.splash-dot{display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--accent);margin-left:2px;vertical-align:middle;
+  animation:splashDotBlink 2s ease-in-out infinite;opacity:.6;}
+@keyframes splashDotBlink{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* Welcome text */
+.splash-welcome-wrap{position:relative;z-index:1;margin-bottom:2.5rem;
+  animation:splashFadeUp .65s .2s cubic-bezier(.4,0,.2,1) both;}
+@keyframes splashFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.splash-greeting{font-size:.8rem;color:var(--muted);margin-bottom:.4rem;letter-spacing:.03em;}
+.splash-name{font-family:'DM Serif Display',serif;font-size:1.65rem;color:var(--text);
+  min-height:2rem;}
+
+/* Buttons */
+.splash-btns{position:relative;z-index:1;display:flex;flex-direction:column;
+  align-items:center;gap:.85rem;width:100%;max-width:300px;
+  animation:splashFadeUp .65s .38s cubic-bezier(.4,0,.2,1) both;}
+.btn-enter{width:100%;padding:.82rem 2rem;font-size:.9rem;font-weight:600;
+  background:var(--accent);color:#0d1117;border:none;border-radius:12px;
+  cursor:pointer;font-family:inherit;letter-spacing:.02em;
+  transition:all .18s;box-shadow:0 0 0 0 rgba(200,240,96,0);}
+.btn-enter:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(200,240,96,.25);}
+.btn-enter:active{transform:translateY(0);}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:.7rem;
+  background:rgba(255,255,255,.07);color:var(--text);
+  border:1px solid var(--border2);border-radius:12px;
+  padding:.72rem 1.6rem;font-size:.84rem;font-weight:500;width:100%;
+  cursor:pointer;font-family:inherit;transition:all .18s;}
+.btn-google:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.2);}
+.splash-note{font-size:.65rem;color:var(--muted);max-width:280px;line-height:1.5;
+  animation:splashFadeUp .65s .5s cubic-bezier(.4,0,.2,1) both;position:relative;z-index:1;}
+
+/* Legacy hidden class kept for compatibility */
+#login-screen{display:none !important;}
 .login-logo{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--accent);}
 .login-sub{color:var(--muted);font-size:.88rem;max-width:380px;line-height:1.6;}
-.btn-google{display:flex;align-items:center;gap:.7rem;background:#fff;color:#1f2937;
-  border:none;border-radius:10px;padding:.75rem 1.6rem;font-size:.92rem;font-weight:600;
-  cursor:pointer;font-family:inherit;transition:all .18s;box-shadow:0 2px 12px rgba(0,0,0,.3);}
-.btn-google:hover{background:#f3f4f6;transform:translateY(-1px);}
 .login-note{font-size:.72rem;color:var(--muted);max-width:340px;line-height:1.5;}
 /* CONFIG */
 .cfg-row{display:flex;align-items:center;justify-content:space-between;padding:.7rem 0;
@@ -116,13 +163,29 @@ header{display:flex;align-items:center;justify-content:space-between;
 .mov-del:hover{color:var(--expense);}
 /* Inversiones */
 .inv-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem .95rem;margin-bottom:.5rem;}
+.inv-suggestion{padding:.5rem .85rem;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:.6rem;transition:background .12s;}
+.inv-suggestion:hover{background:var(--surface2);}
+.inv-suggestion .sug-sym{font-weight:700;min-width:45px;}
+.inv-suggestion .sug-name{color:var(--muted);font-size:.72rem;}
+.inv-suggestion .sug-badge{font-size:.6rem;padding:.1rem .35rem;border-radius:99px;}
+.inv-compra{background:var(--surface3);border-radius:8px;padding:.42rem .7rem;
+  display:flex;align-items:center;gap:.6rem;font-size:.72rem;margin-bottom:.3rem;}
+.inv-compra-fecha{color:var(--muted);min-width:70px;}
+.inv-compra-units{font-weight:600;flex:1;}
+.inv-compra-precio{color:var(--muted);}
+.inv-compra-monto{font-family:'DM Serif Display',serif;font-size:.82rem;}
+.inv-compra-del{background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:.75rem;padding:2px 4px;border-radius:4px;margin-left:auto;}
+.inv-compra-del:hover{color:var(--expense);}
+.inv-group-toggle{font-size:.7rem;color:var(--muted);cursor:pointer;text-decoration:underline;
+  text-underline-offset:2px;background:none;border:none;font-family:inherit;padding:0;}
 .inv-header{display:flex;align-items:center;gap:.65rem;margin-bottom:.55rem;}
 .inv-ico{width:36px;height:36px;border-radius:9px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
 .inv-name{font-size:.88rem;font-weight:600;flex:1;}
 .inv-type{font-size:.65rem;color:var(--muted);background:var(--surface3);padding:.15rem .45rem;border-radius:99px;}
 .inv-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.78rem;padding:3px 5px;border-radius:5px;}
 .inv-del:hover{color:var(--expense);}
-.inv-nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem;}
+.inv-nums{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem;}
 .inv-num{background:var(--surface3);border-radius:7px;padding:.45rem .6rem;}
 .inv-num-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.18rem;}
 .inv-num-val{font-family:'DM Serif Display',serif;font-size:.95rem;}
@@ -131,12 +194,12 @@ header{display:flex;align-items:center;justify-content:space-between;
 .inv-diff.neg{background:rgba(240,120,96,.15);color:var(--expense);}
 .inv-diff.neu{background:var(--surface3);color:var(--muted);}
 .inv-actions{display:flex;gap:.45rem;flex-wrap:wrap;}
-.inv-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-bottom:1rem;}
+.inv-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-bottom:0;}
 .inv-sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;}
 .inv-sum-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.22rem;}
 .inv-sum-val{font-family:'DM Serif Display',serif;font-size:1.35rem;}
 @media(max-width:600px){
-  .inv-nums{grid-template-columns:1fr 1fr;}
+  .inv-nums{grid-template-columns:1fr 1fr 1fr;}
   .inv-summary{grid-template-columns:1fr 1fr;}
   .saldo-val{font-size:2.4rem;}
 }
@@ -215,6 +278,7 @@ header{display:flex;align-items:center;justify-content:space-between;
 
 .rv-loading{color:var(--muted);animation:pulse .9s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* TABS */
 .tabs{display:flex;gap:.2rem;padding:.5rem 2rem 0;border-bottom:1px solid var(--border);background:rgba(8,10,15,.7);}
@@ -484,14 +548,36 @@ canvas{width:100%!important;}
 </head>
 <body>
 <!-- LOGIN SCREEN -->
-<div id="login-screen">
-  <div class="login-logo">Vault</div>
-  <div class="login-sub">Gestor financiero personal. Tus datos, en tu Drive.</div>
-  <button class="btn-google" onclick="signIn()">
-    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-    Iniciar sesión con Google
-  </button>
-  <div class="login-note">Acceso únicamente a un archivo en tu Drive. Sin servidores intermedios.</div>
+<!-- Keep old login-screen div (hidden via CSS) for compat -->
+<div id="login-screen"></div>
+
+<!-- SPLASH SCREEN — shown always on open -->
+<div id="splash-screen">
+  <div class="splash-glow"></div>
+
+  <div class="splash-logo-wrap">
+    <div class="splash-logo">Vault<span class="splash-dot"></span></div>
+    <div class="splash-by">by SS</div>
+  </div>
+
+  <div class="splash-welcome-wrap">
+    <div class="splash-greeting" id="splash-greeting">Bienvenido</div>
+    <div class="splash-name" id="splash-name"></div>
+  </div>
+
+  <div class="splash-btns">
+    <!-- shown if returning user (token cached) -->
+    <button class="btn-enter" id="splash-btn-enter" style="display:none" onclick="splashEnter()">
+      Acceder
+    </button>
+    <!-- shown if new / signed out -->
+    <button class="btn-google" id="splash-btn-google" style="display:none" onclick="signIn()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Conectar con Google
+    </button>
+  </div>
+
+  <div class="splash-note" id="splash-note"></div>
 </div>
 
 <div class="app" id="main-app" style="display:none">
@@ -500,12 +586,14 @@ canvas{width:100%!important;}
 <div id="sync-bar">
   <div class="sync-status">
     <div class="sync-dot spin" id="sync-dot"></div>
-    <span id="sync-msg">Conectando con Google Drive…</span>
+    <span id="sync-msg">Conectando…</span>
   </div>
-  <div style="display:flex;align-items:center;gap:.7rem">
-    <span id="sync-user" style="color:var(--muted)"></span>
-    <button class="btn btn-ghost" style="padding:.22rem .6rem;font-size:.68rem" onclick="manualSync()">Sync</button>
-    <button class="btn btn-ghost" style="padding:.22rem .6rem;font-size:.68rem" onclick="signOut()">Salir</button>
+  <!-- Month summary pill -->
+  <div id="header-summary" style="display:flex;align-items:center;gap:.9rem;font-size:.68rem;flex-wrap:wrap"></div>
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <span id="sync-user" style="color:var(--muted);font-size:.68rem"></span>
+    <button class="btn btn-ghost" style="padding:.18rem .5rem;font-size:.65rem" onclick="manualSync()">Sync</button>
+    <button class="btn btn-ghost" style="padding:.18rem .5rem;font-size:.65rem" onclick="signOut()">Salir</button>
   </div>
 </div>
 
@@ -539,47 +627,81 @@ canvas{width:100%!important;}
       <span style="color:var(--muted)">Dif.</span>
       <span class="diff-val" id="diff-val">—</span>
       <span id="diff-change" style="font-size:.65rem;font-weight:600;letter-spacing:.01em"></span>
+      <button id="diff-refresh-btn" onclick="forceRefreshRates()" title="Actualizar tasas"
+        style="background:none;border:none;cursor:pointer;padding:0 0 0 3px;color:var(--muted);
+        display:flex;align-items:center;line-height:1;transition:color .15s"
+        onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+        <svg id="diff-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+          <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+      </button>
     </div>
   </div>
+  <!-- Settings gear icon -->
+  <button onclick="goTab('config')" title="Configuración"
+    style="background:none;border:none;cursor:pointer;color:var(--muted);padding:.3rem;
+    display:flex;align-items:center;border-radius:8px;transition:color .15s,background .15s;flex-shrink:0"
+    onmouseover="this.style.color='var(--text)';this.style.background='var(--surface2)'"
+    onmouseout="this.style.color='var(--muted)';this.style.background='none'">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
   
 </header>
 
 <!-- TABS -->
 <div class="tabs">
-  <div class="tab active" onclick="goTab('dashboard')">Dashboard</div>
+  <div class="tab active" onclick="goTab('dashboard')">Inicio</div>
   <div class="tab" onclick="goTab('movimientos')">Movimientos</div>
-  <div class="tab" onclick="goTab('metas')">Metas de Ahorro</div>
-  <div class="tab" onclick="goTab('analisis')">Análisis</div>
+  <div class="tab" onclick="goTab('ahorro')">Ahorro</div>
   <div class="tab" onclick="goTab('gastos-fijos')">Gastos Fijos</div>
-  <div class="tab" onclick="goTab('ahorros')">Ahorros</div>
   <div class="tab" onclick="goTab('inversiones')">Inversiones</div>
-  <div class="tab" onclick="goTab('config')">Config</div>
 </div>
 
 <main>
 
 <!-- DASHBOARD -->
 <div class="panel active" id="panel-dashboard">
+  <!-- KPIs del mes -->
   <div class="kpi-row" id="kpi-row"></div>
+
+  <!-- Resumen rápido -->
+  <div class="g2" style="margin-bottom:1rem">
+    <div class="card"><div class="ct">Ahorros · Metas · Inversiones</div>
+      <div style="display:flex;flex-direction:column;gap:.55rem">
+        <div id="dash-ahorros"></div>
+        <div style="border-top:1px solid var(--border);padding-top:.55rem" id="dash-inversiones"></div>
+      </div>
+    </div>
+    <div class="card"><div class="ct">Gastos Fijos del Mes</div><div id="dash-gf"></div></div>
+  </div>
+
+  <!-- Movimientos + Categorías -->
   <div class="g2">
     <div class="card"><div class="ct">Últimos Movimientos</div><div class="txl" id="dash-txl"></div></div>
     <div class="card"><div class="ct">Gastos por Categoría</div><div id="cat-bd"></div></div>
   </div>
+
+  <!-- Separador análisis -->
+  <div style="margin:1.5rem 0 1rem;display:flex;align-items:center;gap:.75rem">
+    <div style="flex:1;height:1px;background:var(--border)"></div>
+    <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)">Análisis</span>
+    <div style="flex:1;height:1px;background:var(--border)"></div>
+  </div>
+
+  <!-- KPIs históricos -->
+  <div class="kpi-row" id="an-kpi" style="margin-bottom:1rem"></div>
+
+  <!-- Charts -->
+  <div class="g2">
+    <div class="card"><div class="ct">Ingresos vs Egresos (6 meses)</div><div class="chart-wrap" style="height:210px"><canvas id="ch-main"></canvas></div></div>
+    <div class="card"><div class="ct">Flujo Mensual (12 meses)</div><div class="chart-wrap" style="height:210px"><canvas id="ch-flujo"></canvas></div></div>
+  </div>
   <div class="g2" style="margin-top:1rem">
-    <div class="card"><div class="ct">Ingresos vs Egresos (6 meses)</div><div class="chart-wrap" style="height:195px"><canvas id="ch-main"></canvas></div></div>
-    <div class="card"><div class="ct">Progreso de Metas</div><div id="goal-prog"></div></div>
-  <div class="card" style="margin-top:1rem">
-    <div class="ct">Gastos Fijos del Mes</div>
-    <div id="dash-gf"></div>
-  </div>
-  <div class="card" style="margin-top:1rem">
-    <div class="ct">Ahorros</div>
-    <div id="dash-ahorros"></div>
-  </div>
-  <div class="card" style="margin-top:1rem">
-    <div class="ct">Inversiones</div>
-    <div id="dash-inversiones"></div>
-  </div>
+    <div class="card"><div class="ct">Distribución de Gastos</div><div class="chart-wrap" style="height:220px"><canvas id="ch-pie"></canvas></div></div>
+    <div class="card"><div class="ct">Balance Acumulado</div><div class="chart-wrap" style="height:220px"><canvas id="ch-bal"></canvas></div></div>
   </div>
 </div>
 
@@ -633,59 +755,9 @@ canvas{width:100%!important;}
   </div>
 </div>
 
-<!-- METAS -->
-<div class="panel" id="panel-metas">
-  <div class="g2">
-    <div class="card">
-      <div class="ct">Nueva Meta de Ahorro</div>
-      <label>Nombre</label>
-      <input type="text" id="gn" placeholder="Ej: Fondo de emergencia…" style="margin-bottom:.65rem">
-      <div class="fg fg-2col" style="margin-bottom:.65rem">
-        <div><label>Objetivo (USD)</label><input type="number" id="gt" placeholder="0.00" min="0" step="0.01"></div>
-        <div><label>Ya ahorrado (USD)</label><input type="number" id="gs" placeholder="0.00" min="0" step="0.01"></div>
-      </div>
-      <div class="fg fg-2col" style="margin-bottom:.85rem">
-        <div><label>Fecha límite</label><input type="date" id="gd"></div>
-        <div><label>Ícono</label>
-          <select id="gi-ico">
-            <option>🏠 Vivienda</option><option>✈️ Viaje</option><option>🚗 Vehículo</option>
-            <option>🎓 Educación</option><option>🏥 Emergencia</option><option>💻 Tecnología</option>
-            <option>👶 Familia</option><option>💎 Lujo</option><option>📦 Otro</option>
-          </select></div>
-      </div>
-      <button class="btn btn-acc" style="width:100%" onclick="addGoal()">Crear Meta</button>
-    </div>
-    <div class="card"><div class="ct">Mis Metas</div><div id="goals-list"></div></div>
-  </div>
-  <div class="card" style="margin-top:1rem">
-    <div class="ct">Abonar a una Meta</div>
-    <div class="fg fg-goal-dep">
-      <div><label>Meta</label><select id="goal-sel"></select></div>
-      <div><label>Moneda</label>
-        <div class="ctog">
-          <button class="active" id="gbtn-usd" onclick="setGCur('USD')">$ USD</button>
-          <button id="gbtn-bs" onclick="setGCur('BS')">Bs.</button>
-        </div></div>
-      <div><label id="gd-lbl">Monto (USD)</label>
-        <input type="number" id="g-amt" placeholder="0.00" min="0" step="0.01" oninput="updGPrev()"></div>
-      <div style="align-self:flex-end"><button class="btn btn-inc" onclick="depositGoal()">Abonar</button></div>
-    </div>
-    <div id="g-prev" style="font-size:.71rem;color:var(--muted);margin-top:.28rem"></div>
-  </div>
-</div>
 
-<!-- ANÁLISIS -->
-<div class="panel" id="panel-analisis">
-  <div class="kpi-row" id="an-kpi"></div>
-  <div class="g2">
-    <div class="card"><div class="ct">Flujo Mensual (12 meses)</div><div class="chart-wrap" style="height:235px"><canvas id="ch-flujo"></canvas></div></div>
-    <div class="card"><div class="ct">Distribución de Gastos</div><div class="chart-wrap" style="height:235px"><canvas id="ch-pie"></canvas></div></div>
-  </div>
-  <div class="card" style="margin-top:1rem">
-    <div class="ct">Balance Acumulado</div>
-    <div class="chart-wrap" style="height:185px"><canvas id="ch-bal"></canvas></div>
-  </div>
-</div>
+
+
 
 
 <!-- CONFIG -->
@@ -780,7 +852,8 @@ canvas{width:100%!important;}
 
 
 <!-- AHORROS -->
-<div class="panel" id="panel-ahorros">
+<div class="panel" id="panel-ahorro">
+  <!-- Saldo hero -->
   <div class="card" style="margin-bottom:1rem">
     <div class="saldo-hero">
       <div class="saldo-lbl">Saldo en Ahorros</div>
@@ -803,45 +876,127 @@ canvas{width:100%!important;}
       </div>
     </div>
   </div>
-  <div class="card">
-    <div class="ct">Historial de Ahorros</div>
-    <div id="ah-lista"></div>
+  <div class="g2" style="margin-bottom:1rem">
+    <div class="card"><div class="ct">Historial de Ahorros</div><div id="ah-lista"></div></div>
+    <div>
+      <!-- Separador metas -->
+      <div style="margin:0 0 1rem;display:flex;align-items:center;gap:.75rem">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)">Metas de Ahorro</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <!-- Nueva meta -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="ct">Nueva Meta</div>
+        <label>Nombre</label>
+        <input type="text" id="gn" placeholder="Ej: Fondo de emergencia…" style="margin-bottom:.65rem">
+        <div class="fg fg-2col" style="margin-bottom:.65rem">
+          <div><label>Objetivo (USD)</label><input type="number" id="gt" placeholder="0.00" min="0" step="0.01"></div>
+          <div><label>Ya ahorrado (USD)</label><input type="number" id="gs" placeholder="0.00" min="0" step="0.01"></div>
+        </div>
+        <div class="fg fg-2col" style="margin-bottom:.85rem">
+          <div><label>Fecha límite</label><input type="date" id="gd"></div>
+          <div><label>Ícono</label>
+            <select id="gi-ico">
+              <option>🏠 Vivienda</option><option>✈️ Viaje</option><option>🚗 Vehículo</option>
+              <option>🎓 Educación</option><option>🏥 Emergencia</option><option>💻 Tecnología</option>
+              <option>👶 Familia</option><option>💎 Lujo</option><option>📦 Otro</option>
+            </select></div>
+        </div>
+        <button class="btn btn-acc" style="width:100%" onclick="addGoal()">Crear Meta</button>
+      </div>
+      <!-- Mis metas -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="ct">Mis Metas</div>
+        <div id="goals-list"></div>
+      </div>
+      <!-- Abonar -->
+      <div class="card">
+        <div class="ct">Abonar a una Meta</div>
+        <div class="fg fg-goal-dep">
+          <div><label>Meta</label><select id="goal-sel"></select></div>
+          <div><label>Moneda</label>
+            <div class="ctog">
+              <button class="active" id="gbtn-usd" onclick="setGCur('USD')">$ USD</button>
+              <button id="gbtn-bs" onclick="setGCur('BS')">Bs.</button>
+            </div></div>
+          <div><label id="gd-lbl">Monto (USD)</label>
+            <input type="number" id="g-amt" placeholder="0.00" min="0" step="0.01" oninput="updGPrev()"></div>
+          <div style="align-self:flex-end"><button class="btn btn-inc" onclick="depositGoal()">Abonar</button></div>
+        </div>
+        <div id="g-prev" style="font-size:.71rem;color:var(--muted);margin-top:.28rem"></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- INVERSIONES -->
 <div class="panel" id="panel-inversiones">
-  <div class="inv-summary" id="inv-summary"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem">
+    <div class="inv-summary" id="inv-summary" style="flex:1;margin-bottom:0"></div>
+    <button id="inv-refresh-btn" class="btn btn-ghost btn-sm" onclick="refreshInvPrices()" style="flex-shrink:0;display:flex;align-items:center;gap:.35rem">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+        <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+      </svg>
+      Actualizar precios
+    </button>
+  </div>
   <div class="card" style="margin-bottom:1rem">
-    <div class="ct">Nueva Inversión</div>
+    <div class="ct">Nueva Compra</div>
+    <!-- Row 1: activo + tipo -->
     <div class="fg fg-tx-top" style="margin-bottom:.65rem">
-      <div style="grid-column:span 2"><label>Nombre</label>
-        <input type="text" id="inv-name" placeholder="Ej: Bitcoin, Tesla, Apartamento…"></div>
+      <div>
+        <label>Activo</label>
+        <div style="position:relative">
+          <input type="text" id="inv-name" placeholder="BTC, ETH, AAPL…" oninput="invSearchAsset()" autocomplete="off">
+          <div id="inv-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:99;
+            background:var(--surface3);border:1px solid var(--border2);border-radius:9px;
+            margin-top:2px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4)"></div>
+        </div>
+      </div>
       <div><label>Tipo</label>
-        <select id="inv-tipo">
-          <option value="crypto">🪙 Crypto</option>
-          <option value="acciones">📊 Acciones</option>
-          <option value="inmueble">🏠 Inmueble</option>
-          <option value="negocio">💼 Negocio</option>
-          <option value="otro">📦 Otro</option>
-        </select></div>
-      <div><label>Ícono</label>
-        <select id="inv-ico">
-          <option value="🪙">🪙 Crypto</option><option value="📊">📊 Acciones</option>
-          <option value="🏠">🏠 Inmueble</option><option value="💼">💼 Negocio</option>
-          <option value="💵">💵 Dólares</option><option value="🥇">🥇 Oro</option>
-          <option value="📦">📦 Otro</option>
-        </select></div>
+        <select id="inv-tipo" onchange="invTipoChange()">
+          <option value="crypto">Crypto</option>
+          <option value="acciones">Acción</option>
+          <option value="inmueble">Inmueble</option>
+          <option value="negocio">Negocio</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div>
+        <label>Precio de compra</label>
+        <div class="ctog" style="margin-bottom:.35rem">
+          <button class="active" id="inv-btn-auto" onclick="setInvPrecio('auto')">Precio actual</button>
+          <button id="inv-btn-manual" onclick="setInvPrecio('manual')">Manual</button>
+        </div>
+        <input type="number" id="inv-precio" placeholder="0.00" min="0" step="0.01"
+          oninput="invCalcUnidades()" style="display:none">
+        <div id="inv-precio-live" style="font-size:.75rem;color:var(--accent)">— cargando…</div>
+      </div>
+      <div>
+        <label>Monto invertido (USD)</label>
+        <input type="number" id="inv-monto" placeholder="0.00" min="0" step="0.01" oninput="invCalcUnidades()">
+      </div>
     </div>
+    <!-- Preview -->
+    <div id="inv-preview" style="background:var(--surface3);border-radius:10px;padding:.7rem 1rem;
+      margin-bottom:.75rem;display:none;font-size:.8rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem">
+        <div>
+          Recibirás <strong id="inv-prev-units">—</strong> <span id="inv-prev-sym">—</span>
+        </div>
+        <div style="color:var(--muted)">
+          @ $<span id="inv-prev-price">—</span> por unidad
+        </div>
+      </div>
+    </div>
+    <!-- Row 2: notas + boton -->
     <div class="fg fg-tx-bot" style="margin-bottom:.65rem">
-      <div><label>Monto invertido (USD)</label>
-        <input type="number" id="inv-invertido" placeholder="0.00" min="0" step="0.01"></div>
-      <div><label>Valor actual (USD)</label>
-        <input type="number" id="inv-actual" placeholder="0.00" min="0" step="0.01"></div>
-      <div><label>Descripción (opcional)</label>
-        <input type="text" id="inv-desc" placeholder="Notas…"></div>
+      <div style="grid-column:span 3"><label>Nota (opcional)</label>
+        <input type="text" id="inv-desc" placeholder="Notas sobre esta compra…"></div>
       <div style="align-self:flex-end">
-        <button class="btn btn-acc" style="width:100%" onclick="addInversion()">+ Agregar</button>
+        <button class="btn btn-acc" style="width:100%" onclick="addInversion()">Registrar compra</button>
       </div>
     </div>
   </div>
@@ -1372,7 +1527,7 @@ function notify(msg) {
 //  TABS
 // ═══════════════════════════════════════════════
 let activeTab = 'dashboard';
-const TAB_IDS = ['dashboard', 'movimientos', 'metas', 'analisis', 'gastos-fijos', 'ahorros', 'inversiones', 'config'];
+const TAB_IDS = ['dashboard', 'movimientos', 'ahorro', 'gastos-fijos', 'inversiones', 'config'];
 
 function goTab(t) {
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', TAB_IDS[i] === t));
@@ -1547,6 +1702,7 @@ function renderDash() {
   renderDashGF();
   renderDashAhorros();
   renderDashInversiones();
+  renderHeaderSummary();
 }
 
 function renderCatBd(txs, id) {
@@ -1592,6 +1748,41 @@ function renderDashInversiones() {
     </div>
     <span class="inv-diff ${dcls}">${s}${pct.toFixed(1)}%&nbsp;${gan >= 0 ? '+' : ''}$${fmt(Math.abs(gan))}</span>
   </div>`;
+}
+
+function renderHeaderSummary() {
+  const el = document.getElementById('header-summary');
+  if (!el) return;
+  const txs = mTxs();
+  const inc = totInc(txs), exp = totExp(txs), bal = inc - exp;
+  const saldo = S.ahorros ? S.ahorros.saldo : 0;
+  const balColor = bal >= 0 ? 'var(--income)' : 'var(--expense)';
+  el.innerHTML = `
+    <span style="color:var(--muted)">${MONTHS[curM]}</span>
+    <span>↑ <strong style="color:var(--income)">$${fmt(inc)}</strong></span>
+    <span>↓ <strong style="color:var(--expense)">$${fmt(exp)}</strong></span>
+    <span>= <strong style="color:${balColor}">$${fmt(Math.abs(bal))}${bal < 0 ? ' — déficit' : ''}</strong></span>
+    ${saldo > 0 ? `<span style="color:var(--muted)">· Ahorros <strong style="color:var(--accent)">$${fmt(saldo)}</strong></span>` : ''}
+  `;
+}
+
+async function refreshInvPrices() {
+  if (!S.inversiones || !S.inversiones.length) return;
+  const btn = document.getElementById('inv-refresh-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const keys = [...new Set(S.inversiones.filter(g => g.wkey).map(g => g.wkey))];
+  await Promise.all(keys.map(async wkey => {
+    const parts = wkey.split(':');
+    const tipo  = parts[0], id = parts[1], sym = parts[2];
+    let d = null;
+    if (tipo === 'crypto') d = await fetchCryptoData(id, sym);
+    else d = await fetchStockData(sym || id.toUpperCase());
+    if (d) mktData[wkey] = d;
+  }));
+  renderInversiones();
+  renderDashInversiones();
+  if (btn) { btn.disabled = false; btn.textContent = 'Actualizar precios'; }
+  notify('Precios actualizados');
 }
 
 function renderDashGF() {
@@ -2008,59 +2199,219 @@ function renderAhorros() {
 // ═══════════════════════════════════════════════
 //  INVERSIONES
 // ═══════════════════════════════════════════════
-const INV_TIPO_ICO = { crypto:'🪙', acciones:'📊', inmueble:'🏠', negocio:'💼', otro:'📦' };
+const INV_TIPO_ICO = { crypto:'◈', acciones:'▲', inmueble:'⬡', negocio:'◆', otro:'●' };
+const INV_ASSETS = [
+  {sym:'BTC', name:'Bitcoin',    tipo:'crypto',   wkey:'crypto:bitcoin:BTC'},
+  {sym:'ETH', name:'Ethereum',   tipo:'crypto',   wkey:'crypto:ethereum:ETH'},
+  {sym:'SOL', name:'Solana',     tipo:'crypto',   wkey:'crypto:solana:SOL'},
+  {sym:'BNB', name:'Binance',    tipo:'crypto',   wkey:'crypto:binancecoin:BNB'},
+  {sym:'XRP', name:'Ripple',     tipo:'crypto',   wkey:'crypto:ripple:XRP'},
+  {sym:'ADA', name:'Cardano',    tipo:'crypto',   wkey:'crypto:cardano:ADA'},
+  {sym:'DOGE',name:'Dogecoin',   tipo:'crypto',   wkey:'crypto:dogecoin:DOGE'},
+  {sym:'AAPL',name:'Apple',      tipo:'acciones', wkey:'stock:AAPL:AAPL'},
+  {sym:'TSLA',name:'Tesla',      tipo:'acciones', wkey:'stock:TSLA:TSLA'},
+  {sym:'NVDA',name:'Nvidia',     tipo:'acciones', wkey:'stock:NVDA:NVDA'},
+  {sym:'AMZN',name:'Amazon',     tipo:'acciones', wkey:'stock:AMZN:AMZN'},
+  {sym:'MSFT',name:'Microsoft',  tipo:'acciones', wkey:'stock:MSFT:MSFT'},
+  {sym:'GOOGL',name:'Google',    tipo:'acciones', wkey:'stock:GOOGL:GOOGL'},
+  {sym:'META',name:'Meta',       tipo:'acciones', wkey:'stock:META:META'},
+  {sym:'SPY', name:'S&P 500 ETF',tipo:'acciones', wkey:'stock:SPY:SPY'},
+  {sym:'GLD', name:'Oro ETF',    tipo:'acciones', wkey:'stock:GLD:GLD'},
+];
+
+let invPrecioMode = 'auto';
+let invPrecioActual = null;
+let invSelectedAsset = null;
+
+function invTipoChange() {
+  invSelectedAsset = null;
+  invPrecioActual  = null;
+  document.getElementById('inv-precio-live').textContent = '— selecciona un activo';
+  document.getElementById('inv-preview').style.display = 'none';
+}
+
+function setInvPrecio(mode) {
+  invPrecioMode = mode;
+  document.getElementById('inv-btn-auto').classList.toggle('active', mode === 'auto');
+  document.getElementById('inv-btn-manual').classList.toggle('active', mode === 'manual');
+  document.getElementById('inv-precio').style.display = mode === 'manual' ? 'block' : 'none';
+  document.getElementById('inv-precio-live').style.display = mode === 'auto' ? 'block' : 'none';
+  invCalcUnidades();
+}
+
+function invSearchAsset() {
+  const q   = document.getElementById('inv-name').value.trim().toUpperCase();
+  const box = document.getElementById('inv-suggestions');
+  if (!q) { box.style.display = 'none'; invSelectedAsset = null; return; }
+  const matches = INV_ASSETS.filter(a =>
+    a.sym.startsWith(q) || a.name.toUpperCase().includes(q)
+  ).slice(0, 6);
+  if (!matches.length) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = matches.map(a => `
+    <div class="inv-suggestion" onclick="invSelectAsset('${a.sym}','${a.name}','${a.tipo}','${a.wkey}')">
+      <span class="sug-sym">${a.sym}</span>
+      <span class="sug-name">${a.name}</span>
+      <span class="sug-badge ${a.tipo === 'crypto' ? 'crypto' : 'stock'} mkt-badge">${a.tipo}</span>
+    </div>`).join('');
+}
+
+async function invSelectAsset(sym, name, tipo, wkey) {
+  document.getElementById('inv-name').value = sym;
+  document.getElementById('inv-suggestions').style.display = 'none';
+  document.getElementById('inv-tipo').value = tipo;
+  invSelectedAsset = { sym, name, tipo, wkey };
+
+  // Load price
+  document.getElementById('inv-precio-live').textContent = 'Cargando precio…';
+  invPrecioActual = null;
+
+  let price = null;
+  // Check cache first
+  const cached = mktData[wkey];
+  if (cached && cached.price) {
+    price = cached.price;
+  } else {
+    const parts = wkey.split(':');
+    if (tipo === 'crypto') {
+      const d = await fetchCryptoData(parts[1], sym);
+      if (d) { price = d.price; mktData[wkey] = d; }
+    } else {
+      const d = await fetchStockData(sym);
+      if (d) { price = d.price; mktData[wkey] = d; }
+    }
+  }
+
+  if (price) {
+    invPrecioActual = price;
+    document.getElementById('inv-precio-live').textContent =
+      `Precio actual: $${price.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:4})}`;
+  } else {
+    document.getElementById('inv-precio-live').textContent = 'Sin precio disponible — usa precio manual';
+    setInvPrecio('manual');
+  }
+  invCalcUnidades();
+}
+
+function invCalcUnidades() {
+  const monto = parseFloat(document.getElementById('inv-monto').value);
+  const prevEl = document.getElementById('inv-preview');
+  const sym = invSelectedAsset ? invSelectedAsset.sym :
+    (document.getElementById('inv-name').value.trim().toUpperCase() || '?');
+
+  let precio = invPrecioMode === 'manual'
+    ? parseFloat(document.getElementById('inv-precio').value)
+    : invPrecioActual;
+
+  if (!monto || !precio || monto <= 0 || precio <= 0) { prevEl.style.display = 'none'; return; }
+
+  const units = monto / precio;
+  prevEl.style.display = 'block';
+  document.getElementById('inv-prev-units').textContent =
+    units >= 1 ? units.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:4})
+               : units.toFixed(6);
+  document.getElementById('inv-prev-sym').textContent = sym;
+  document.getElementById('inv-prev-price').textContent =
+    precio.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:4});
+}
 
 function addInversion() {
-  const name      = document.getElementById('inv-name').value.trim();
-  const tipo      = document.getElementById('inv-tipo').value;
-  const ico       = document.getElementById('inv-ico').value;
-  const invertido = parseFloat(document.getElementById('inv-invertido').value);
-  const actual    = parseFloat(document.getElementById('inv-actual').value) || invertido;
-  const desc      = document.getElementById('inv-desc').value.trim();
-  if (!name || !invertido || invertido <= 0) { notify('Nombre y monto requeridos'); return; }
+  const sym   = document.getElementById('inv-name').value.trim().toUpperCase();
+  const tipo  = document.getElementById('inv-tipo').value;
+  const monto = parseFloat(document.getElementById('inv-monto').value);
+  const desc  = document.getElementById('inv-desc').value.trim();
+  if (!sym || !monto || monto <= 0) { notify('Activo y monto requeridos'); return; }
 
-  const rate = activeRate();
-  const inv = { id: Date.now(), name, tipo, ico, invertido, actual, desc, fecha: new Date().toISOString().slice(0,10) };
-  S.inversiones.push(inv);
+  let precio = invPrecioMode === 'manual'
+    ? parseFloat(document.getElementById('inv-precio').value)
+    : invPrecioActual;
+  if (!precio || precio <= 0) { notify('Ingresa o carga el precio del activo'); return; }
 
-  // Registrar en movimientos
+  const units = monto / precio;
+  const rate  = activeRate();
+  const fecha = new Date().toISOString().slice(0, 10);
+  const name  = invSelectedAsset ? invSelectedAsset.name : sym;
+  const wkey  = invSelectedAsset ? invSelectedAsset.wkey : null;
+
+  // Find existing group for this asset
+  let group = S.inversiones.find(g => g.sym === sym);
+  if (!group) {
+    group = { id: Date.now(), sym, name, tipo, wkey, compras: [] };
+    S.inversiones.push(group);
+  }
+
+  const compra = { id: Date.now() + 1, monto, precio, units, desc, fecha };
+  group.compras.push(compra);
+
+  // Register in movimientos
   const tx = {
-    id: inv.id + 1, type: 'expense',
-    desc: 'Inversión: ' + name,
-    date: inv.fecha, cat: 'Inversiones',
-    amountUSD: invertido,
-    amountBS: rate ? invertido * rate : null,
+    id: compra.id + 1, type: 'expense',
+    desc: `Compra ${sym}${desc ? ' — ' + desc : ''}`,
+    date: fecha, cat: 'Inversiones',
+    amountUSD: monto,
+    amountBS: rate ? monto * rate : null,
     rateUsed: rate || null, rateKey: activeRateKey,
     originalCurrency: 'USD', esInversion: true
   };
   S.transactions.unshift(tx);
 
   persist(); renderInversiones(); refreshAll();
-  ['inv-name','inv-invertido','inv-actual','inv-desc'].forEach(id => document.getElementById(id).value = '');
-  notify('Inversión agregada');
+  document.getElementById('inv-name').value  = '';
+  document.getElementById('inv-monto').value = '';
+  document.getElementById('inv-desc').value  = '';
+  document.getElementById('inv-precio').value = '';
+  document.getElementById('inv-preview').style.display = 'none';
+  document.getElementById('inv-precio-live').textContent = '— selecciona un activo';
+  invSelectedAsset = null; invPrecioActual = null;
+  notify('Compra registrada');
 }
 
-function updateInvActual(id) {
-  const val = parseFloat(document.getElementById('inv-actual-' + id).value);
-  if (isNaN(val) || val < 0) { notify('Valor inválido'); return; }
-  const inv = S.inversiones.find(i => i.id === id);
-  if (!inv) return;
-  inv.actual = val;
-  inv.ultimaActualizacion = new Date().toISOString().slice(0,10);
-  persist(); renderInversiones(); renderDash(); notify('Valor actualizado');
+function delCompra(groupId, compraId) {
+  const group = S.inversiones.find(g => g.id === groupId);
+  if (!group) return;
+  const compra = group.compras.find(c => c.id === compraId);
+  if (compra) S.transactions = S.transactions.filter(t => t.id !== compra.id + 1);
+  group.compras = group.compras.filter(c => c.id !== compraId);
+  if (!group.compras.length) S.inversiones = S.inversiones.filter(g => g.id !== groupId);
+  persist(); renderInversiones(); refreshAll(); notify('Compra eliminada');
 }
 
-function delInversion(id) {
-  S.inversiones = S.inversiones.filter(i => i.id !== id);
-  S.transactions = S.transactions.filter(t => t.id !== id + 1);
-  persist(); renderInversiones(); refreshAll(); notify('Eliminado');
+function toggleCompras(id) {
+  const el = document.getElementById('inv-compras-' + id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function renderInversiones() {
   if (!S.inversiones) return;
-  const totalInv = S.inversiones.reduce((a, i) => a + i.invertido, 0);
-  const totalAct = S.inversiones.reduce((a, i) => a + i.actual, 0);
-  const ganancia = totalAct - totalInv;
+
+  // Migrate old format (flat items without .compras)
+  S.inversiones = S.inversiones.map(inv => {
+    if (!inv.compras) {
+      return {
+        id: inv.id, sym: inv.name || inv.sym || 'N/A',
+        name: inv.name, tipo: inv.tipo || 'otro', wkey: inv.wkey || null,
+        compras: [{ id: inv.id + 100, monto: inv.invertido || 0,
+          precio: inv.actual || inv.invertido || 0,
+          units: inv.actual && inv.invertido ? inv.invertido / inv.actual : 0,
+          desc: inv.desc || '', fecha: inv.fecha || '' }]
+      };
+    }
+    return inv;
+  });
+
+  // Totals using live price if available
+  let totalInv = 0, totalActual = 0;
+  S.inversiones.forEach(g => {
+    const inv = g.compras.reduce((a, c) => a + c.monto, 0);
+    const totalUnits = g.compras.reduce((a, c) => a + c.units, 0);
+    const livePrice = g.wkey && mktData[g.wkey] ? mktData[g.wkey].price : null;
+    const act = livePrice ? totalUnits * livePrice : inv;
+    totalInv    += inv;
+    totalActual += act;
+  });
+
+  const ganancia = totalActual - totalInv;
   const pct      = totalInv > 0 ? ((ganancia / totalInv) * 100) : 0;
   const sign     = pct >= 0 ? '+' : '';
   const diffCls  = pct > 0 ? 'pos' : pct < 0 ? 'neg' : 'neu';
@@ -2070,45 +2421,77 @@ function renderInversiones() {
     <div class="inv-sum-card"><div class="inv-sum-lbl">Total Invertido</div>
       <div class="inv-sum-val">$${fmt(totalInv)}</div></div>
     <div class="inv-sum-card"><div class="inv-sum-lbl">Valor Actual</div>
-      <div class="inv-sum-val">$${fmt(totalAct)}</div></div>
+      <div class="inv-sum-val">$${fmt(totalActual)}</div></div>
     <div class="inv-sum-card"><div class="inv-sum-lbl">Ganancia / Pérdida</div>
       <div class="inv-sum-val" style="color:${ganancia >= 0 ? 'var(--income)' : 'var(--expense)'}">
-        ${ganancia >= 0 ? '+' : ''}$${fmt(Math.abs(ganancia))}</div>
+        ${ganancia >= 0 ? '+' : '-'}$${fmt(Math.abs(ganancia))}</div>
       <span class="inv-diff ${diffCls}" style="margin-top:.3rem;display:inline-flex">${sign}${pct.toFixed(1)}%</span>
     </div>`;
 
   const lista = document.getElementById('inv-lista');
-  if (!S.inversiones.length) { lista.innerHTML = '<div class="card"><div class="empty">Sin inversiones aún</div></div>'; return; }
+  if (!S.inversiones.length) {
+    lista.innerHTML = '<div class="card"><div class="empty">Sin inversiones aún</div></div>'; return;
+  }
 
-  lista.innerHTML = S.inversiones.map(inv => {
-    const gan    = inv.actual - inv.invertido;
-    const p      = inv.invertido > 0 ? (gan / inv.invertido * 100) : 0;
-    const s      = p >= 0 ? '+' : '';
-    const dcls   = p > 0 ? 'pos' : p < 0 ? 'neg' : 'neu';
-    const upd    = inv.ultimaActualizacion ? 'Actualizado ' + inv.ultimaActualizacion : 'Desde ' + inv.fecha;
+  lista.innerHTML = S.inversiones.map(g => {
+    const totalMonto = g.compras.reduce((a, c) => a + c.monto, 0);
+    const totalUnits = g.compras.reduce((a, c) => a + c.units, 0);
+    const livePrice  = g.wkey && mktData[g.wkey] ? mktData[g.wkey].price : null;
+    const valorAct   = livePrice ? totalUnits * livePrice : totalMonto;
+    const gan        = valorAct - totalMonto;
+    const p          = totalMonto > 0 ? (gan / totalMonto * 100) : 0;
+    const s          = p >= 0 ? '+' : '';
+    const dcls       = p > 0 ? 'pos' : p < 0 ? 'neg' : 'neu';
+    const unitsStr   = totalUnits >= 1
+      ? totalUnits.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:4})
+      : totalUnits.toFixed(6);
+    const liveLbl    = livePrice
+      ? `<span style="font-size:.65rem;color:var(--muted)">@ $${livePrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})} actual</span>`
+      : `<span style="font-size:.65rem;color:var(--muted)">Precio no disponible</span>`;
+
+    const comprasHtml = g.compras.map(c => `
+      <div class="inv-compra">
+        <span class="inv-compra-fecha">${c.fecha}</span>
+        <span class="inv-compra-units">${c.units >= 1 ? c.units.toFixed(4) : c.units.toFixed(6)} ${g.sym}</span>
+        <span class="inv-compra-precio">@ $${c.precio.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</span>
+        <span class="inv-compra-monto">$${fmt(c.monto)}</span>
+        ${c.desc ? `<span style="color:var(--muted);font-size:.65rem">${c.desc}</span>` : ''}
+        <button class="inv-compra-del" onclick="delCompra(${g.id}, ${c.id})">✕</button>
+      </div>`).join('');
+
     return `<div class="inv-item">
       <div class="inv-header">
-        <div class="inv-ico">${inv.ico}</div>
-        <div class="inv-name">${inv.name}</div>
-        <span class="inv-type">${INV_TIPO_ICO[inv.tipo] || ''} ${inv.tipo}</span>
+        <div class="inv-ico" style="font-size:.75rem;font-weight:700;background:var(--surface3)">${g.sym}</div>
+        <div class="inv-name">${g.name || g.sym}</div>
+        <span class="inv-type">${g.tipo}</span>
         <span class="inv-diff ${dcls}">${s}${p.toFixed(1)}%</span>
-        <button class="inv-del" onclick="delInversion(${inv.id})">✕</button>
+        <button class="inv-del" onclick="if(confirm('Eliminar todo el grupo ${g.sym}?')){ S.inversiones=S.inversiones.filter(x=>x.id!==${g.id}); persist(); renderInversiones(); refreshAll(); }">✕</button>
       </div>
       <div class="inv-nums">
-        <div class="inv-num"><div class="inv-num-lbl">Invertido</div>
-          <div class="inv-num-val">$${fmt(inv.invertido)}</div></div>
-        <div class="inv-num"><div class="inv-num-lbl">Valor actual</div>
-          <div class="inv-num-val">$${fmt(inv.actual)}</div></div>
-        <div class="inv-num"><div class="inv-num-lbl">G/P</div>
-          <div class="inv-num-val" style="color:${gan >= 0 ? 'var(--income)' : 'var(--expense)'}">
-            ${gan >= 0 ? '+' : ''}$${fmt(Math.abs(gan))}</div></div>
+        <div class="inv-num">
+          <div class="inv-num-lbl">Invertido</div>
+          <div class="inv-num-val">$${fmt(totalMonto)}</div>
+          <div style="font-size:.62rem;color:var(--muted)">${g.compras.length} compra${g.compras.length!==1?'s':''}</div>
+        </div>
+        <div class="inv-num">
+          <div class="inv-num-lbl">Unidades</div>
+          <div class="inv-num-val" style="font-size:.88rem">${unitsStr}</div>
+          <div style="font-size:.62rem;color:var(--muted)">${g.sym}</div>
+        </div>
+        <div class="inv-num">
+          <div class="inv-num-lbl">Valor actual</div>
+          <div class="inv-num-val">$${fmt(valorAct)}</div>
+          ${liveLbl}
+        </div>
+        <div class="inv-num">
+          <div class="inv-num-lbl">G / P</div>
+          <div class="inv-num-val" style="color:${gan>=0?'var(--income)':'var(--expense)'}">
+            ${gan>=0?'+':'-'}$${fmt(Math.abs(gan))}</div>
+        </div>
       </div>
-      ${inv.desc ? `<div style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">${inv.desc}</div>` : ''}
-      <div style="font-size:.65rem;color:var(--muted);margin-bottom:.5rem">${upd}</div>
-      <div class="inv-actions">
-        <input type="number" id="inv-actual-${inv.id}" placeholder="Nuevo valor actual…" min="0" step="0.01"
-          style="flex:1;font-size:.78rem;padding:.3rem .55rem">
-        <button class="btn btn-ghost btn-sm" onclick="updateInvActual(${inv.id})">Actualizar valor</button>
+      <div style="margin-top:.5rem">
+        <button class="inv-group-toggle" onclick="toggleCompras(${g.id})">Ver historial de compras</button>
+        <div id="inv-compras-${g.id}" style="display:none;margin-top:.5rem">${comprasHtml}</div>
       </div>
     </div>`;
   }).join('');
@@ -2377,12 +2760,11 @@ function initMktDrag() {
 // ═══════════════════════════════════════════════
 function refreshAll() {
   renderDash();
-  if (activeTab === 'movimientos') renderMov();
-  if (activeTab === 'metas')       renderMetas();
-  if (activeTab === 'analisis')    renderAnalisis();
-  if (activeTab === 'gastos-fijos')  renderGastosFijos();
-  if (activeTab === 'ahorros')         renderAhorros();
-  if (activeTab === 'inversiones')     renderInversiones();
+  if (activeTab === 'movimientos')  renderMov();
+  if (activeTab === 'ahorro')       { renderAhorros(); renderMetas(); }
+  if (activeTab === 'gastos-fijos') renderGastosFijos();
+  if (activeTab === 'inversiones')  renderInversiones();
+  if (activeTab === 'dashboard')    renderAnalisis();
 }
 
 // ═══════════════════════════════════════════════
@@ -2441,8 +2823,13 @@ function signOut() {
   if (accessToken) google.accounts.oauth2.revoke(accessToken, ()=>{});
   accessToken = null; driveFileId = null;
   localStorage.removeItem('fp_gtoken');
+  localStorage.removeItem('fp_user_name');
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('login-screen').classList.remove('hidden');
+  // Re-show splash for login
+  const sp = document.getElementById('splash-screen');
+  if (sp) { sp.style.display = 'flex'; sp.classList.remove('exit'); sp.style.opacity = '1'; sp.style.transform = 'none'; }
+  showSplash(false);
 }
 
 async function loadUserInfo() {
@@ -2451,10 +2838,58 @@ async function loadUserInfo() {
   if (!r.ok) throw new Error('invalid token');
   const u = await r.json();
   userEmail = u.email || '';
+  // Save display name for splash
+  const displayName = u.given_name || u.name || u.email.split('@')[0] || '';
+  try { if (displayName) localStorage.setItem('fp_user_name', displayName); } catch {}
   const su = document.getElementById('sync-user');
   const cu = document.getElementById('cfg-user');
   if (su) su.textContent = userEmail;
   if (cu) cu.textContent = userEmail;
+}
+
+function splashDismiss() {
+  const sp = document.getElementById('splash-screen');
+  sp.classList.add('exit');
+  setTimeout(() => { sp.style.display = 'none'; }, 580);
+}
+
+function splashEnter() {
+  splashDismiss();
+}
+
+function showSplash(hasToken) {
+  const greeting  = document.getElementById('splash-greeting');
+  const nameEl    = document.getElementById('splash-name');
+  const btnEnter  = document.getElementById('splash-btn-enter');
+  const btnGoogle = document.getElementById('splash-btn-google');
+  const note      = document.getElementById('splash-note');
+
+  // Try to get cached name
+  let cachedName = '';
+  try { cachedName = localStorage.getItem('fp_user_name') || ''; } catch {}
+
+  if (hasToken && cachedName) {
+    // Returning user with known name
+    greeting.textContent = 'Bienvenido de vuelta,';
+    nameEl.textContent   = cachedName;
+    btnEnter.style.display  = 'block';
+    btnGoogle.style.display = 'none';
+    note.textContent = 'a Vault by SS';
+  } else if (hasToken) {
+    // Has token but no name yet (will resolve after auth)
+    greeting.textContent = 'Bienvenido de vuelta';
+    nameEl.textContent   = '';
+    btnEnter.style.display  = 'block';
+    btnGoogle.style.display = 'none';
+    note.textContent = 'a Vault by SS';
+  } else {
+    // First visit / signed out
+    greeting.textContent = 'Tu gestor financiero personal';
+    nameEl.textContent   = '';
+    btnEnter.style.display  = 'none';
+    btnGoogle.style.display = 'block';
+    note.textContent = 'Tus datos, en tu Drive. Sin servidores intermedios.';
+  }
 }
 
 function showApp() {
@@ -2464,6 +2899,11 @@ function showApp() {
   app.style.flexDirection = 'column';
   app.style.minHeight = '100vh';
   setSyncStatus('spin', 'Cargando datos desde Drive…');
+  // Auto-dismiss splash if still visible
+  const sp = document.getElementById('splash-screen');
+  if (sp && !sp.classList.contains('exit') && sp.style.display !== 'none') {
+    splashDismiss();
+  }
 }
 
 async function loadFromDrive() {
@@ -2560,6 +3000,8 @@ function migrateData(data) {
   if (!d.gfPagos)     d.gfPagos = {};
   if (!d.ahorros)     d.ahorros = { saldo: 0, movimientos: [] };
   if (!d.inversiones) d.inversiones = [];
+  // Ensure watchlist exists
+  if (!d.watchlist) d.watchlist = ['crypto:bitcoin:BTC','crypto:ethereum:ETH','stock:AAPL:AAPL','stock:TSLA:TSLA','stock:NVDA:NVDA'];
   if (!d.watchlist)   d.watchlist = ['crypto:bitcoin:BTC','crypto:ethereum:ETH','stock:AAPL:AAPL','stock:TSLA:TSLA','stock:NVDA:NVDA'];
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
@@ -2577,6 +3019,11 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
+  // Show splash immediately
+  let hasToken = false;
+  try { hasToken = !!localStorage.getItem('fp_gtoken'); } catch {}
+  showSplash(hasToken);
+
   const wait = setInterval(() => {
     if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
       clearInterval(wait);
