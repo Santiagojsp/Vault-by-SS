@@ -2,8 +2,13 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FinanzasPersonales · Venezuela</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="theme-color" content="#0c0e13">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -91,6 +96,41 @@ header{display:flex;align-items:center;justify-content:space-between;
 .cfg-row:last-child{border-bottom:none;}
 .cfg-label{font-size:.82rem;}
 .cfg-sub{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
+/* GASTOS FIJOS */
+.gf-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:.75rem .9rem;display:flex;align-items:center;gap:.7rem;transition:border-color .18s;}
+.gf-item.pagado{border-color:rgba(96,240,168,.3);background:rgba(96,240,168,.04);}
+.gf-item.vencido{border-color:rgba(240,120,96,.3);}
+.gf-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:.95rem;flex-shrink:0;background:var(--surface3);}
+.gf-info{flex:1;min-width:0;}
+.gf-name{font-size:.84rem;font-weight:500;}
+.gf-meta{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
+.gf-amt{font-family:'DM Serif Display',serif;font-size:1rem;flex-shrink:0;text-align:right;}
+.gf-amt.pagado{color:var(--income);}
+.gf-amt.pendiente{color:var(--dim);}
+.gf-toggle{flex-shrink:0;width:44px;height:24px;border-radius:99px;border:none;cursor:pointer;
+  position:relative;transition:background .22s;outline:none;}
+.gf-toggle.on{background:var(--income);}
+.gf-toggle.off{background:var(--surface3);border:1px solid var(--border);}
+.gf-toggle::after{content:'';position:absolute;top:3px;width:18px;height:18px;
+  border-radius:50%;background:#fff;transition:left .22s;}
+.gf-toggle.on::after{left:23px;}
+.gf-toggle.off::after{left:3px;}
+.gf-del{background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:.8rem;padding:3px 5px;border-radius:5px;transition:color .14s;flex-shrink:0;}
+.gf-del:hover{color:var(--expense);}
+.gf-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-bottom:1rem;}
+.gf-sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:.85rem 1rem;}
+.gf-sum-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.25rem;}
+.gf-sum-val{font-family:'DM Serif Display',serif;font-size:1.4rem;}
+.gf-prog{height:5px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:.85rem;}
+.gf-prog-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .5s ease;}
+@media(max-width:600px){
+  .gf-summary{grid-template-columns:1fr 1fr;}
+  .gf-item{flex-wrap:wrap;}
+}
 
 .rv-loading{color:var(--muted);animation:pulse .9s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -138,6 +178,15 @@ input,select{background:var(--surface2);border:1px solid var(--border);color:var
 input:focus,select:focus{border-color:var(--accent);}
 select option{background:var(--surface2);}
 .fg{display:grid;gap:.6rem;align-items:end;margin-bottom:.65rem;}
+.fg-tx-top{grid-template-columns:105px 1fr 145px 160px;}
+.fg-tx-bot{grid-template-columns:145px 1fr 1fr auto;}
+.fg-goal-dep{grid-template-columns:1fr 135px 1fr auto;}
+@media(max-width:600px){
+  .fg-tx-top{grid-template-columns:1fr 1fr;}
+  .fg-tx-bot{grid-template-columns:1fr 1fr;}
+  .fg-goal-dep{grid-template-columns:1fr 1fr;}
+  .fg-tx-bot>div:last-child,.fg-tx-top>div:last-child,.fg-goal-dep>div:last-child{grid-column:1/-1;}
+}
 
 /* CURRENCY TOGGLE */
 .ctog{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
@@ -257,8 +306,81 @@ canvas{width:100%!important;}
 .rc-cell label{color:var(--muted);font-size:.64rem;margin-bottom:.12rem;}
 .rc-cell .v{color:var(--text);font-weight:600;}
 
-@media(max-width:940px){.kpi-row{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr;}main{padding:1.1rem 1rem;}header{padding:.8rem 1rem;}.tabs{padding:.5rem 1rem 0;}}
-@media(max-width:580px){.kpi-row{grid-template-columns:1fr 1fr;}.rs-btn span{display:none;}}
+/* ── TABLET ── */
+@media(max-width:940px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .g2{grid-template-columns:1fr;}
+  main{padding:1.1rem 1rem;}
+  header{padding:.8rem 1rem;}
+  .tabs{padding:.5rem 1rem 0;}
+  #sync-bar{padding:.38rem 1rem;}
+}
+/* ── MOBILE ── */
+@media(max-width:600px){
+  /* Header: stack everything */
+  header{flex-direction:column;align-items:flex-start;padding:.7rem 1rem;gap:.55rem;}
+  .header-mid{width:100%;flex-direction:column;align-items:flex-start;gap:.45rem;}
+  .rate-selector{width:100%;justify-content:space-between;}
+  .rs-btn{flex:1;justify-content:center;padding:.3rem .2rem;font-size:.68rem;}
+  .rate-val-pill{width:100%;justify-content:center;}
+  .month-nav{width:100%;justify-content:space-between;}
+  #month-label{flex:1;text-align:center;}
+  .logo{font-size:1.15rem;}
+
+  /* Sync bar */
+  #sync-bar{flex-direction:column;align-items:flex-start;gap:.3rem;padding:.4rem .8rem;font-size:.68rem;}
+
+  /* Tabs: scrollable horizontal */
+  .tabs{gap:.2rem;padding:.4rem .8rem 0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{padding:.45rem .7rem;font-size:.68rem;white-space:nowrap;flex-shrink:0;}
+
+  /* Main */
+  main{padding:.8rem .75rem;}
+
+  /* KPIs: 2 col */
+  .kpi-row{grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:1rem;}
+  .kpi{padding:.8rem .9rem;}
+  .kpi-value{font-size:1.4rem;}
+  .kpi-sub{font-size:.62rem;}
+
+  /* Cards */
+  .card{padding:.9rem .85rem;}
+  .g2{gap:.7rem;}
+
+  /* Form grids: stack all to 1 col on mobile */
+  .fg[style*="grid-template-columns:105px"]{grid-template-columns:1fr 1fr!important;}
+  .fg[style*="grid-template-columns:145px"]{grid-template-columns:1fr 1fr!important;}
+  .fg[style*="grid-template-columns:1fr 135px"]{grid-template-columns:1fr 1fr!important;}
+  .fg[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr 1fr!important;}
+
+  /* TX items */
+  .txi{padding:.5rem .6rem;gap:.45rem;}
+  .txi-desc{font-size:.78rem;}
+  .txi-usd{font-size:.88rem;}
+  .txi-bs{font-size:.62rem;}
+  .txi-date{display:none;}
+
+  /* Goals */
+  .ga{gap:.45rem;font-size:.7rem;}
+
+  /* Chart height */
+  .chart-wrap{height:160px!important;}
+
+  /* Modal */
+  .md{padding:1.1rem;border-radius:12px;}
+  .rc-grid{grid-template-columns:1fr 1fr 1fr;}
+
+  /* Config rows */
+  .cfg-row{flex-direction:column;align-items:flex-start;gap:.5rem;}
+
+  /* Notif */
+  #notif{bottom:.8rem;right:.8rem;left:.8rem;text-align:center;}
+
+  /* Login */
+  .login-logo{font-size:1.8rem;}
+  .btn-google{font-size:.85rem;padding:.65rem 1.2rem;}
+}
 </style>
 </head>
 <body>
@@ -324,6 +446,7 @@ canvas{width:100%!important;}
   <div class="tab" onclick="goTab('movimientos')">Movimientos</div>
   <div class="tab" onclick="goTab('metas')">Metas de Ahorro</div>
   <div class="tab" onclick="goTab('analisis')">Análisis</div>
+  <div class="tab" onclick="goTab('gastos-fijos')">Gastos Fijos</div>
   <div class="tab" onclick="goTab('config')">⚙️ Config</div>
 </div>
 
@@ -339,6 +462,10 @@ canvas{width:100%!important;}
   <div class="g2" style="margin-top:1rem">
     <div class="card"><div class="ct">Ingresos vs Egresos (6 meses)</div><div class="chart-wrap" style="height:195px"><canvas id="ch-main"></canvas></div></div>
     <div class="card"><div class="ct">Progreso de Metas</div><div id="goal-prog"></div></div>
+  <div class="card" style="margin-top:1rem">
+    <div class="ct">Gastos Fijos del Mes</div>
+    <div id="dash-gf"></div>
+  </div>
   </div>
 </div>
 
@@ -346,7 +473,7 @@ canvas{width:100%!important;}
 <div class="panel" id="panel-movimientos">
   <div class="card" style="margin-bottom:1rem">
     <div class="ct">Registrar Movimiento</div>
-    <div class="fg" style="grid-template-columns:105px 1fr 145px 160px">
+    <div class="fg fg-tx-top">
       <div><label>Tipo</label>
         <select id="tx-type">
           <option value="income">↑ Ingreso</option>
@@ -363,7 +490,7 @@ canvas{width:100%!important;}
           <option>Otro gasto</option>
         </select></div>
     </div>
-    <div class="fg" style="grid-template-columns:145px 1fr 1fr auto">
+    <div class="fg fg-tx-bot">
       <div><label>Moneda entrada</label>
         <div class="ctog">
           <button class="active" id="btn-usd" onclick="setTxCur('USD')">$ USD</button>
@@ -399,11 +526,11 @@ canvas{width:100%!important;}
       <div class="ct">Nueva Meta de Ahorro</div>
       <label>Nombre</label>
       <input type="text" id="gn" placeholder="Ej: Fondo de emergencia…" style="margin-bottom:.65rem">
-      <div class="fg" style="grid-template-columns:1fr 1fr;margin-bottom:.65rem">
+      <div class="fg fg-2col" style="margin-bottom:.65rem">
         <div><label>Objetivo (USD)</label><input type="number" id="gt" placeholder="0.00" min="0" step="0.01"></div>
         <div><label>Ya ahorrado (USD)</label><input type="number" id="gs" placeholder="0.00" min="0" step="0.01"></div>
       </div>
-      <div class="fg" style="grid-template-columns:1fr 1fr;margin-bottom:.85rem">
+      <div class="fg fg-2col" style="margin-bottom:.85rem">
         <div><label>Fecha límite</label><input type="date" id="gd"></div>
         <div><label>Ícono</label>
           <select id="gi-ico">
@@ -418,7 +545,7 @@ canvas{width:100%!important;}
   </div>
   <div class="card" style="margin-top:1rem">
     <div class="ct">Abonar a una Meta</div>
-    <div class="fg" style="grid-template-columns:1fr 135px 1fr auto">
+    <div class="fg fg-goal-dep">
       <div><label>Meta</label><select id="goal-sel"></select></div>
       <div><label>Moneda</label>
         <div class="ctog">
@@ -475,6 +602,65 @@ canvas{width:100%!important;}
         ⬆ Importar<input type="file" accept=".json" onchange="importBackup(event)" style="display:none">
       </label>
     </div>
+  </div>
+</div>
+
+
+<!-- GASTOS FIJOS -->
+<div class="panel" id="panel-gastos-fijos">
+  <!-- Resumen -->
+  <div class="gf-summary" id="gf-summary"></div>
+
+  <!-- Agregar gasto fijo -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Agregar Gasto Fijo</div>
+    <div class="fg fg-tx-top" style="margin-bottom:.65rem">
+      <div style="grid-column:span 2"><label>Nombre</label>
+        <input type="text" id="gf-name" placeholder="Ej: Electricidad, Netflix…"></div>
+      <div><label>Monto (USD)</label>
+        <input type="number" id="gf-monto" placeholder="0.00" min="0" step="0.01"></div>
+      <div><label>Día de vencimiento</label>
+        <input type="number" id="gf-dia" placeholder="Ej: 5" min="1" max="31"></div>
+    </div>
+    <div class="fg fg-tx-bot" style="margin-bottom:.65rem">
+      <div><label>Categoría</label>
+        <select id="gf-cat">
+          <option>Vivienda</option><option>Servicios</option><option>Transporte</option>
+          <option>Salud</option><option>Educación</option><option>Entretenimiento</option>
+          <option>Alimentación</option><option>Otro gasto</option>
+        </select></div>
+      <div><label>Ícono</label>
+        <select id="gf-ico">
+          <option value="🏠">🏠 Vivienda</option><option value="⚡">⚡ Electricidad</option>
+          <option value="💧">💧 Agua</option><option value="📱">📱 Teléfono</option>
+          <option value="🌐">🌐 Internet</option><option value="🎬">🎬 Streaming</option>
+          <option value="🚗">🚗 Transporte</option><option value="🏥">🏥 Salud</option>
+          <option value="🎓">🎓 Educación</option><option value="📦">📦 Otro</option>
+        </select></div>
+      <div><label>Moneda</label>
+        <div class="ctog">
+          <button class="active" id="gf-btn-usd" onclick="setGFCur('USD')">$ USD</button>
+          <button id="gf-btn-bs" onclick="setGFCur('BS')">Bs.</button>
+        </div></div>
+      <div style="align-self:flex-end">
+        <button class="btn btn-acc" style="width:100%" onclick="addGastoFijo()">+ Agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista del mes -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.95rem;flex-wrap:wrap;gap:.5rem">
+      <div class="ct" style="margin-bottom:0">Gastos Fijos — <span id="gf-mes-label"></span></div>
+      <div style="display:flex;gap:.45rem">
+        <select id="gf-filtro" onchange="renderGastosFijos()" style="width:auto;font-size:.72rem;padding:.26rem .5rem">
+          <option value="all">Todos</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="pagado">Pagados</option>
+        </select>
+      </div>
+    </div>
+    <div id="gf-lista" style="display:flex;flex-direction:column;gap:.45rem"></div>
   </div>
 </div>
 
@@ -904,7 +1090,7 @@ function notify(msg) {
 //  TABS
 // ═══════════════════════════════════════════════
 let activeTab = 'dashboard';
-const TAB_IDS = ['dashboard', 'movimientos', 'metas', 'analisis', 'config'];
+const TAB_IDS = ['dashboard', 'movimientos', 'metas', 'analisis', 'gastos-fijos', 'config'];
 
 function goTab(t) {
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', TAB_IDS[i] === t));
@@ -914,6 +1100,7 @@ function goTab(t) {
   if (t === 'analisis')    renderAnalisis();
   if (t === 'movimientos') renderMov();
   if (t === 'metas')       renderMetas();
+  if (t === 'gastos-fijos') renderGastosFijos();
 }
 
 // ═══════════════════════════════════════════════
@@ -1065,6 +1252,7 @@ function renderDash() {
   renderCatBd(txs, 'cat-bd');
   renderChMain();
   renderGoalProg();
+  renderDashGF();
 }
 
 function renderCatBd(txs, id) {
@@ -1080,6 +1268,30 @@ function renderCatBd(txs, id) {
       <div class="cb"><div class="cf" style="width:${total ? Math.round(amt / total * 100) : 0}%"></div></div>
       <div class="ca">$${fmt(amt)}</div>
     </div>`).join('');
+}
+
+function renderDashGF() {
+  const el = document.getElementById('dash-gf');
+  if (!el || !S.gastosFijos || !S.gastosFijos.length) {
+    if (el) el.innerHTML = '<div class="empty">Sin gastos fijos configurados</div>';
+    return;
+  }
+  const total   = S.gastosFijos.reduce((a, g) => a + g.montoUSD, 0);
+  const pagado  = S.gastosFijos.filter(g => S.gfPagos[gfKey(g.id)]).reduce((a, g) => a + g.montoUSD, 0);
+  const pct     = total > 0 ? Math.round(pagado / total * 100) : 0;
+  const pendN   = S.gastosFijos.filter(g => !S.gfPagos[gfKey(g.id)]).length;
+  const today   = new Date().getDate();
+  const vencN   = S.gastosFijos.filter(g => !S.gfPagos[gfKey(g.id)] && g.dia < today).length;
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:.4rem">
+      <span>$${fmt(pagado)} pagado de $${fmt(total)}</span>
+      <span style="color:var(--muted)">${pct}%</span>
+    </div>
+    <div class="pb"><div class="pf ${pct >= 80 ? 'ok' : pct >= 40 ? 'warn' : 'danger'}" style="width:${pct}%"></div></div>
+    <div style="display:flex;gap:.8rem;margin-top:.45rem;font-size:.7rem;color:var(--muted)">
+      <span>${pendN} pendiente${pendN !== 1 ? 's' : ''}</span>
+      ${vencN > 0 ? '<span style="color:var(--expense)">⚠️ ' + vencN + ' vencido' + (vencN !== 1 ? 's' : '') + '</span>' : ''}
+    </div>`;
 }
 
 function renderGoalProg() {
@@ -1255,6 +1467,149 @@ function renderAnalisis() {
   });
 }
 
+
+// ═══════════════════════════════════════════════
+//  GASTOS FIJOS
+// ═══════════════════════════════════════════════
+let gfCur = 'USD';
+function setGFCur(c) {
+  gfCur = c;
+  document.getElementById('gf-btn-usd').classList.toggle('active', c === 'USD');
+  document.getElementById('gf-btn-bs').classList.toggle('active',  c === 'BS');
+}
+
+function addGastoFijo() {
+  const name  = document.getElementById('gf-name').value.trim();
+  const monto = parseFloat(document.getElementById('gf-monto').value);
+  const dia   = parseInt(document.getElementById('gf-dia').value) || 1;
+  const cat   = document.getElementById('gf-cat').value;
+  const ico   = document.getElementById('gf-ico').value;
+  if (!name || !monto || monto <= 0) { notify('⚠️ Nombre y monto requeridos'); return; }
+
+  const rate = activeRate();
+  let montoUSD = monto;
+  if (gfCur === 'BS') {
+    if (!rate) { notify('⚠️ Sin tasa activa para convertir'); return; }
+    montoUSD = monto / rate;
+  }
+
+  S.gastosFijos.push({ id: Date.now(), name, montoUSD, dia, cat, ico, cur: gfCur, montoOrig: monto });
+  persist(); renderGastosFijos(); renderDash();
+  document.getElementById('gf-name').value  = '';
+  document.getElementById('gf-monto').value = '';
+  document.getElementById('gf-dia').value   = '';
+  notify('✅ Gasto fijo agregado');
+}
+
+function delGastoFijo(id) {
+  S.gastosFijos = S.gastosFijos.filter(g => g.id !== id);
+  // Limpiar pagos de este gasto
+  Object.keys(S.gfPagos).forEach(k => { if (k.startsWith(id + '_')) delete S.gfPagos[k]; });
+  persist(); renderGastosFijos(); renderDash(); notify('🗑️ Eliminado');
+}
+
+// Clave única por gasto+mes: "id_YYYY-MM"
+function gfKey(id) {
+  return id + '_' + curY + '-' + String(curM + 1).padStart(2, '0');
+}
+
+function toggleGastoFijo(id) {
+  const key = gfKey(id);
+  const gasto = S.gastosFijos.find(g => g.id === id);
+  if (!gasto) return;
+
+  if (S.gfPagos[key]) {
+    // Desmarcar: eliminar el pago y la transacción asociada
+    const txId = S.gfPagos[key].txId;
+    if (txId) S.transactions = S.transactions.filter(t => t.id !== txId);
+    delete S.gfPagos[key];
+    notify('↩️ Marcado como pendiente');
+  } else {
+    // Marcar como pagado: crear transacción automática
+    const rate = activeRate();
+    const tx = {
+      id:               Date.now(),
+      type:             'expense',
+      desc:             gasto.name + ' (gasto fijo)',
+      date:             curY + '-' + String(curM + 1).padStart(2,'0') + '-' + String(gasto.dia).padStart(2,'0'),
+      cat:              gasto.cat,
+      amountUSD:        gasto.montoUSD,
+      amountBS:         rate ? gasto.montoUSD * rate : null,
+      rateUsed:         rate || null,
+      rateKey:          activeRateKey,
+      originalCurrency: 'USD',
+      esGastoFijo:      true
+    };
+    S.transactions.unshift(tx);
+    S.gfPagos[key] = { txId: tx.id, fecha: new Date().toISOString() };
+    notify('✅ Pagado y registrado en Movimientos');
+  }
+  persist(); renderGastosFijos(); renderDash();
+}
+
+function renderGastosFijos() {
+  if (!S.gastosFijos) return;
+  const filtro  = document.getElementById('gf-filtro') ? document.getElementById('gf-filtro').value : 'all';
+  const mesLbl  = document.getElementById('gf-mes-label');
+  if (mesLbl) mesLbl.textContent = MONTHS[curM] + ' ' + curY;
+
+  const totalMes   = S.gastosFijos.reduce((a, g) => a + g.montoUSD, 0);
+  const pagadosMes = S.gastosFijos.filter(g => S.gfPagos[gfKey(g.id)]).reduce((a, g) => a + g.montoUSD, 0);
+  const pendiente  = totalMes - pagadosMes;
+  const pct        = totalMes > 0 ? Math.round(pagadosMes / totalMes * 100) : 0;
+  const br         = activeRate();
+
+  // Summary cards
+  const sumEl = document.getElementById('gf-summary');
+  if (sumEl) sumEl.innerHTML = `
+    <div class="gf-sum-card">
+      <div class="gf-sum-label">Total Fijos / Mes</div>
+      <div class="gf-sum-val">$${fmt(totalMes)}</div>
+      ${br ? '<div style="font-size:.68rem;color:var(--muted)">≈ Bs. ' + fmt(totalMes * br) + '</div>' : ''}
+    </div>
+    <div class="gf-sum-card">
+      <div class="gf-sum-label">Pagado</div>
+      <div class="gf-sum-val" style="color:var(--income)">$${fmt(pagadosMes)}</div>
+    </div>
+    <div class="gf-sum-card">
+      <div class="gf-sum-label">Pendiente</div>
+      <div class="gf-sum-val" style="color:var(--expense)">$${fmt(pendiente)}</div>
+      <div class="gf-prog"><div class="gf-prog-fill" style="width:${pct}%"></div></div>
+    </div>`;
+
+  // List
+  let lista = [...S.gastosFijos].sort((a, b) => a.dia - b.dia);
+  if (filtro === 'pagado')    lista = lista.filter(g =>  S.gfPagos[gfKey(g.id)]);
+  if (filtro === 'pendiente') lista = lista.filter(g => !S.gfPagos[gfKey(g.id)]);
+
+  const today = new Date().getDate();
+  const listaEl = document.getElementById('gf-lista');
+  if (!listaEl) return;
+
+  if (!lista.length) { listaEl.innerHTML = '<div class="empty">Sin gastos fijos aún</div>'; return; }
+
+  listaEl.innerHTML = lista.map(g => {
+    const key     = gfKey(g.id);
+    const pagado  = !!S.gfPagos[key];
+    const vencido = !pagado && g.dia < today;
+    const cls     = pagado ? 'pagado' : vencido ? 'vencido' : '';
+    const bsLine  = br ? `<div style="font-size:.65rem;color:var(--muted)">≈ Bs. ${fmt(g.montoUSD * br)}</div>` : '';
+    const diaLbl  = pagado ? '✓ Pagado' : (vencido ? '⚠️ Vencido día ' + g.dia : 'Vence día ' + g.dia);
+    return `<div class="gf-item ${cls}">
+      <div class="gf-ico">${g.ico}</div>
+      <div class="gf-info">
+        <div class="gf-name">${g.name}</div>
+        <div class="gf-meta">${g.cat} · ${diaLbl}</div>
+      </div>
+      <div class="gf-amt ${pagado ? 'pagado' : 'pendiente'}">
+        $${fmt(g.montoUSD)}${bsLine}
+      </div>
+      <button class="gf-toggle ${pagado ? 'on' : 'off'}" onclick="toggleGastoFijo(${g.id})" title="${pagado ? 'Desmarcar' : 'Marcar como pagado'}"></button>
+      <button class="gf-del" onclick="delGastoFijo(${g.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
 // ═══════════════════════════════════════════════
 //  REFRESH
 // ═══════════════════════════════════════════════
@@ -1263,6 +1618,7 @@ function refreshAll() {
   if (activeTab === 'movimientos') renderMov();
   if (activeTab === 'metas')       renderMetas();
   if (activeTab === 'analisis')    renderAnalisis();
+  if (activeTab === 'gastos-fijos') renderGastosFijos();
 }
 
 // ═══════════════════════════════════════════════
@@ -1436,6 +1792,8 @@ function migrateData(data) {
   const d = data || { transactions: [], goals: [] };
   if (!d.transactions) d.transactions = [];
   if (!d.goals) d.goals = [];
+  if (!d.gastosFijos) d.gastosFijos = [];
+  if (!d.gfPagos)     d.gfPagos = {};
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
       t.amountUSD = t.amount || 0; t.amountBS = null;
