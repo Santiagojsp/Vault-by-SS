@@ -142,8 +142,11 @@ header{display:flex;align-items:center;justify-content:space-between;
 }
 /* MERCADO */
 .mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem;margin-top:1rem;}
-.mkt-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;position:relative;overflow:hidden;}
+.mkt-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;position:relative;overflow:hidden;cursor:grab;transition:box-shadow .18s,opacity .18s,border-color .18s;}
 .mkt-card:hover{border-color:var(--border2);}
+.mkt-card.dragging{opacity:.45;cursor:grabbing;box-shadow:0 8px 32px rgba(0,0,0,.5);border-color:var(--accent);}
+.mkt-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);}
+.mkt-drag-handle{position:absolute;top:.5rem;right:.5rem;color:var(--border2);font-size:.75rem;cursor:grab;user-select:none;}
 .mkt-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
 .mkt-sym{font-weight:700;font-size:.88rem;}
 .mkt-name{font-size:.68rem;color:var(--muted);flex:1;}
@@ -2174,19 +2177,23 @@ async function fetchCryptoData(coinId, sym) {
   } catch { return null; }
 }
 
+const FINNHUB_KEY = 'd6pehn9r01qo88ait1fgd6pehn9r01qo88ait1g0';
+
 async function fetchStockData(ticker) {
-  // Yahoo Finance v8 via allorigins proxy
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=8d`;
-    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    const res  = await fetch(proxy);
-    const data = await res.json();
-    const meta   = data.chart?.result?.[0]?.meta;
-    const closes = data.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
-    const price  = meta?.regularMarketPrice;
-    const prev   = meta?.chartPreviousClose;
+    const now   = Math.floor(Date.now() / 1000);
+    const from  = now - 8 * 86400;
+    const [quoteRes, histRes] = await Promise.all([
+      fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_KEY}`),
+      fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${from}&to=${now}&token=${FINNHUB_KEY}`)
+    ]);
+    const quote = await quoteRes.json();
+    const hist  = await histRes.json();
+    const price  = quote.c;
+    const prev   = quote.pc;
     const change = prev ? ((price - prev) / prev * 100) : null;
-    const history = closes.filter(v => v != null);
+    const history = (hist.c && hist.s === 'ok') ? hist.c : [];
+    if (!price) return null;
     return { price, change, history, sym: ticker, type: 'stock' };
   } catch { return null; }
 }
@@ -2228,7 +2235,8 @@ function renderMarketGrid(loading = false) {
     const symLabel = sym || id.toUpperCase();
 
     if (loading || !d) {
-      return `<div class="mkt-card">
+      return `<div class="mkt-card" draggable="true" data-key="${key}">
+        <div class="mkt-drag-handle">⠿</div>
         <div class="mkt-top">
           <span class="mkt-sym">${symLabel}</span>
           <span class="mkt-badge ${type}">${type === 'crypto' ? 'Crypto' : 'Acción'}</span>
@@ -2242,7 +2250,8 @@ function renderMarketGrid(loading = false) {
     const chgCls  = d.change == null ? '' : d.change >= 0 ? 'up' : 'down';
     const safeKey = key.replace(/[^a-zA-Z0-9]/g, '_');
 
-    return `<div class="mkt-card">
+    return `<div class="mkt-card" draggable="true" data-key="${key}">
+      <div class="mkt-drag-handle">⠿</div>
       <div class="mkt-top">
         <span class="mkt-sym">${symLabel}</span>
         <span class="mkt-name">${type === 'crypto' ? id : ''}</span>
@@ -2253,6 +2262,9 @@ function renderMarketGrid(loading = false) {
       <div class="mkt-chart"><canvas id="mc_${safeKey}"></canvas></div>
     </div>`;
   }).join('');
+
+  // Drag and drop
+  initMktDrag();
 
   // Draw mini charts
   requestAnimationFrame(() => {
@@ -2285,6 +2297,46 @@ function renderMarketGrid(loading = false) {
           }
         });
       } catch(e) { console.warn('Chart error', key, e); }
+    });
+  });
+}
+
+function initMktDrag() {
+  const grid = document.getElementById('mkt-grid');
+  if (!grid) return;
+  let dragSrc = null;
+
+  grid.querySelectorAll('.mkt-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragSrc = card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.key);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      grid.querySelectorAll('.mkt-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      grid.querySelectorAll('.mkt-card').forEach(c => c.classList.remove('drag-over'));
+      if (card !== dragSrc) card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!dragSrc || dragSrc === card) return;
+      const srcKey = dragSrc.dataset.key;
+      const dstKey = card.dataset.key;
+      const si = S.watchlist.indexOf(srcKey);
+      const di = S.watchlist.indexOf(dstKey);
+      if (si === -1 || di === -1) return;
+      S.watchlist.splice(si, 1);
+      S.watchlist.splice(di, 0, srcKey);
+      persist();
+      // Re-render without refetching
+      Object.keys(MKT_CHARTS).forEach(k => { try { MKT_CHARTS[k].destroy(); } catch{} delete MKT_CHARTS[k]; });
+      renderMarketGrid(false);
     });
   });
 }
