@@ -857,6 +857,21 @@ canvas{width:100%!important;}
       </div>
     </div>
   </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Exportar a CSV</div>
+    <div class="cfg-row">
+      <div><div class="cfg-label">Movimientos</div><div class="cfg-sub">Todos los ingresos y gastos registrados</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV('movimientos')">⬇ CSV</button>
+    </div>
+    <div class="cfg-row">
+      <div><div class="cfg-label">Gastos Fijos</div><div class="cfg-sub">Lista de gastos fijos configurados</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV('gastos-fijos')">⬇ CSV</button>
+    </div>
+    <div class="cfg-row">
+      <div><div class="cfg-label">Inversiones</div><div class="cfg-sub">Portafolio y detalle de compras</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV('inversiones')">⬇ CSV</button>
+    </div>
+  </div>
   <div class="card">
     <div class="ct">Respaldo de datos</div>
     <div class="cfg-row">
@@ -3371,6 +3386,79 @@ async function manualSave(btn) {
 }
 
 // ── Export / Import ──
+function exportCSV(type) {
+  const esc = v => {
+    const s = (v === null || v === undefined) ? '' : String(v);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const row = cols => cols.map(esc).join(',');
+  const dl  = (csv, name) => {
+    const bom = '\uFEFF'; // UTF-8 BOM para Excel
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = name + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+  };
+
+  if (type === 'movimientos') {
+    const header = row(['Fecha','Tipo','Descripcion','Categoria','Monto USD','Monto Bs','Tasa','Tasa Key','Moneda Original']);
+    const body = [...S.transactions]
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map(t => row([
+        t.date,
+        t.type === 'income' ? 'Ingreso' : 'Egreso',
+        t.desc,
+        t.cat,
+        t.amountUSD != null ? t.amountUSD.toFixed(2) : '',
+        t.amountBS  != null ? t.amountBS.toFixed(2)  : '',
+        t.rateUsed  != null ? t.rateUsed.toFixed(2)  : '',
+        t.rateKey   || '',
+        t.originalCurrency || 'USD'
+      ]));
+    dl([header, ...body].join('\n'), 'vault-movimientos');
+    notify('CSV de movimientos exportado');
+  }
+
+  else if (type === 'gastos-fijos') {
+    const header = row(['Nombre','Monto USD','Dia Vencimiento','Categoria','Icono','Moneda']);
+    const body = S.gastosFijos.map(g => row([
+      g.name,
+      g.monto != null ? g.monto.toFixed(2) : '',
+      g.dia   != null ? g.dia : '',
+      g.cat   || '',
+      g.ico   || '',
+      g.cur   || 'USD'
+    ]));
+    dl([header, ...body].join('\n'), 'vault-gastos-fijos');
+    notify('CSV de gastos fijos exportado');
+  }
+
+  else if (type === 'inversiones') {
+    // Una fila por compra, con columnas del grupo repetidas
+    const header = row(['Activo','Nombre','Tipo','Fecha Compra','Monto USD','Precio Unitario','Unidades','Notas']);
+    const body = [];
+    S.inversiones.forEach(g => {
+      if (!g.compras || !g.compras.length) {
+        body.push(row([g.sym, g.name, g.tipo, '', '', '', '', '']));
+      } else {
+        g.compras.forEach(c => body.push(row([
+          g.sym,
+          g.name,
+          g.tipo,
+          c.fecha || '',
+          c.monto  != null ? c.monto.toFixed(2)  : '',
+          c.precio != null ? c.precio.toFixed(4)  : '',
+          c.units  != null ? c.units.toFixed(6)   : '',
+          c.desc   || ''
+        ])));
+      }
+    });
+    dl([header, ...body].join('\n'), 'vault-inversiones');
+    notify('CSV de inversiones exportado');
+  }
+}
+
 function exportBackup() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));
