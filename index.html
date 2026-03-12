@@ -96,6 +96,80 @@ header{display:flex;align-items:center;justify-content:space-between;
 .cfg-row:last-child{border-bottom:none;}
 .cfg-label{font-size:.82rem;}
 .cfg-sub{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
+/* AHORROS & INVERSIONES */
+.saldo-hero{text-align:center;padding:1.8rem 1rem 1.4rem;border-bottom:1px solid var(--border);margin-bottom:1rem;}
+.saldo-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.35rem;}
+.saldo-val{font-family:'DM Serif Display',serif;font-size:3rem;color:var(--accent);line-height:1;}
+.saldo-sub{font-size:.72rem;color:var(--muted);margin-top:.35rem;}
+.mov-row{display:flex;align-items:center;gap:.7rem;padding:.55rem .5rem;border-bottom:1px solid var(--border);}
+.mov-row:last-child{border-bottom:none;}
+.mov-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.mov-ico.dep{background:rgba(96,240,168,.15);}
+.mov-ico.ret{background:rgba(240,120,96,.15);}
+.mov-info{flex:1;min-width:0;}
+.mov-desc{font-size:.8rem;font-weight:500;}
+.mov-date{font-size:.65rem;color:var(--muted);}
+.mov-amt{font-family:'DM Serif Display',serif;font-size:.95rem;flex-shrink:0;}
+.mov-amt.dep{color:var(--income);}
+.mov-amt.ret{color:var(--expense);}
+.mov-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:3px 5px;border-radius:5px;font-size:.75rem;flex-shrink:0;}
+.mov-del:hover{color:var(--expense);}
+/* Inversiones */
+.inv-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem .95rem;margin-bottom:.5rem;}
+.inv-header{display:flex;align-items:center;gap:.65rem;margin-bottom:.55rem;}
+.inv-ico{width:36px;height:36px;border-radius:9px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.inv-name{font-size:.88rem;font-weight:600;flex:1;}
+.inv-type{font-size:.65rem;color:var(--muted);background:var(--surface3);padding:.15rem .45rem;border-radius:99px;}
+.inv-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.78rem;padding:3px 5px;border-radius:5px;}
+.inv-del:hover{color:var(--expense);}
+.inv-nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.55rem;}
+.inv-num{background:var(--surface3);border-radius:7px;padding:.45rem .6rem;}
+.inv-num-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.18rem;}
+.inv-num-val{font-family:'DM Serif Display',serif;font-size:.95rem;}
+.inv-diff{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:99px;}
+.inv-diff.pos{background:rgba(96,240,168,.15);color:var(--income);}
+.inv-diff.neg{background:rgba(240,120,96,.15);color:var(--expense);}
+.inv-diff.neu{background:var(--surface3);color:var(--muted);}
+.inv-actions{display:flex;gap:.45rem;flex-wrap:wrap;}
+.inv-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;margin-bottom:1rem;}
+.inv-sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;}
+.inv-sum-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.22rem;}
+.inv-sum-val{font-family:'DM Serif Display',serif;font-size:1.35rem;}
+@media(max-width:600px){
+  .inv-nums{grid-template-columns:1fr 1fr;}
+  .inv-summary{grid-template-columns:1fr 1fr;}
+  .saldo-val{font-size:2.4rem;}
+}
+/* MERCADO */
+.mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem;margin-top:1rem;}
+.mkt-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;position:relative;overflow:hidden;}
+.mkt-card:hover{border-color:var(--border2);}
+.mkt-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
+.mkt-sym{font-weight:700;font-size:.88rem;}
+.mkt-name{font-size:.68rem;color:var(--muted);flex:1;}
+.mkt-badge{font-size:.6rem;padding:.12rem .4rem;border-radius:99px;font-weight:600;}
+.mkt-badge.crypto{background:rgba(200,160,240,.2);color:var(--euro);}
+.mkt-badge.stock{background:rgba(96,212,240,.15);color:var(--bcv);}
+.mkt-price{font-family:'DM Serif Display',serif;font-size:1.45rem;margin-bottom:.18rem;}
+.mkt-change{font-size:.72rem;font-weight:600;}
+.mkt-change.up{color:var(--income);}
+.mkt-change.down{color:var(--expense);}
+.mkt-chart{height:55px;margin-top:.5rem;}
+.mkt-loading{display:flex;align-items:center;justify-content:center;height:55px;color:var(--muted);font-size:.72rem;}
+.mkt-err{font-size:.65rem;color:var(--muted);text-align:center;padding:.5rem 0;}
+.mkt-controls{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem;}
+.mkt-add-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;}
+.watchlist-tag{display:inline-flex;align-items:center;gap:.3rem;background:var(--surface3);
+  border:1px solid var(--border);border-radius:99px;padding:.2rem .6rem;font-size:.7rem;}
+.watchlist-tag button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.7rem;padding:0 2px;}
+.watchlist-tag button:hover{color:var(--expense);}
+@media(max-width:600px){
+  .mkt-grid{grid-template-columns:1fr 1fr;}
+  .mkt-price{font-size:1.15rem;}
+}
+@media(max-width:380px){
+  .mkt-grid{grid-template-columns:1fr;}
+}
 /* GASTOS FIJOS */
 .gf-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;
   padding:.75rem .9rem;display:flex;align-items:center;gap:.7rem;transition:border-color .18s;}
@@ -470,6 +544,8 @@ canvas{width:100%!important;}
   <div class="tab" onclick="goTab('metas')">Metas de Ahorro</div>
   <div class="tab" onclick="goTab('analisis')">Análisis</div>
   <div class="tab" onclick="goTab('gastos-fijos')">Gastos Fijos</div>
+  <div class="tab" onclick="goTab('ahorros')">💰 Ahorros</div>
+  <div class="tab" onclick="goTab('inversiones')">📈 Inversiones</div>
   <div class="tab" onclick="goTab('config')">⚙️ Config</div>
 </div>
 
@@ -488,6 +564,14 @@ canvas{width:100%!important;}
   <div class="card" style="margin-top:1rem">
     <div class="ct">Gastos Fijos del Mes</div>
     <div id="dash-gf"></div>
+  </div>
+  <div class="card" style="margin-top:1rem">
+    <div class="ct">Ahorros</div>
+    <div id="dash-ahorros"></div>
+  </div>
+  <div class="card" style="margin-top:1rem">
+    <div class="ct">Inversiones</div>
+    <div id="dash-inversiones"></div>
   </div>
   </div>
 </div>
@@ -684,6 +768,126 @@ canvas{width:100%!important;}
       </div>
     </div>
     <div id="gf-lista" style="display:flex;flex-direction:column;gap:.45rem"></div>
+  </div>
+</div>
+
+
+<!-- AHORROS -->
+<div class="panel" id="panel-ahorros">
+  <div class="card" style="margin-bottom:1rem">
+    <div class="saldo-hero">
+      <div class="saldo-lbl">Saldo en Ahorros</div>
+      <div class="saldo-val" id="ah-saldo">$0.00</div>
+      <div class="saldo-sub" id="ah-sub">Sin movimientos aún</div>
+    </div>
+    <div class="ct" style="margin-top:.8rem">Registrar movimiento</div>
+    <div class="fg fg-tx-bot" style="margin-bottom:.65rem">
+      <div><label>Tipo</label>
+        <div class="ctog">
+          <button class="active" id="ah-btn-dep" onclick="setAhTipo('deposito')">⬆ Depósito</button>
+          <button id="ah-btn-ret" onclick="setAhTipo('retiro')">⬇ Retiro</button>
+        </div></div>
+      <div><label>Monto (USD)</label>
+        <input type="number" id="ah-monto" placeholder="0.00" min="0" step="0.01"></div>
+      <div><label>Descripción</label>
+        <input type="text" id="ah-desc" placeholder="Ej: Ahorro mensual…"></div>
+      <div style="align-self:flex-end">
+        <button class="btn btn-acc" style="width:100%" onclick="addAhorro()">Registrar</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Historial de Ahorros</div>
+    <div id="ah-lista"></div>
+  </div>
+</div>
+
+<!-- INVERSIONES -->
+<div class="panel" id="panel-inversiones">
+  <div class="inv-summary" id="inv-summary"></div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Agregar Inversión</div>
+    <div class="fg fg-tx-top" style="margin-bottom:.65rem">
+      <div style="grid-column:span 2"><label>Nombre</label>
+        <input type="text" id="inv-name" placeholder="Ej: Bitcoin, Tesla, Apartamento…"></div>
+      <div><label>Tipo</label>
+        <select id="inv-tipo">
+          <option value="crypto">🪙 Crypto</option>
+          <option value="acciones">📊 Acciones</option>
+          <option value="inmueble">🏠 Inmueble</option>
+          <option value="negocio">💼 Negocio</option>
+          <option value="otro">📦 Otro</option>
+        </select></div>
+      <div><label>Ícono</label>
+        <select id="inv-ico">
+          <option value="🪙">🪙 Crypto</option><option value="📊">📊 Acciones</option>
+          <option value="🏠">🏠 Inmueble</option><option value="💼">💼 Negocio</option>
+          <option value="💵">💵 Dólares</option><option value="🥇">🥇 Oro</option>
+          <option value="📦">📦 Otro</option>
+        </select></div>
+    </div>
+    <div class="fg fg-tx-bot" style="margin-bottom:.65rem">
+      <div><label>Monto invertido (USD)</label>
+        <input type="number" id="inv-invertido" placeholder="0.00" min="0" step="0.01"></div>
+      <div><label>Valor actual (USD)</label>
+        <input type="number" id="inv-actual" placeholder="0.00" min="0" step="0.01"></div>
+      <div><label>Descripción (opcional)</label>
+        <input type="text" id="inv-desc" placeholder="Notas…"></div>
+      <div style="align-self:flex-end">
+        <button class="btn btn-acc" style="width:100%" onclick="addInversion()">+ Agregar</button>
+      </div>
+    </div>
+  </div>
+  <div id="inv-lista"></div>
+
+  <!-- MERCADO -->
+  <div class="card" style="margin-top:1rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.7rem">
+      <div class="ct" style="margin-bottom:0">📡 Mercado en Tiempo Real</div>
+      <div style="display:flex;gap:.45rem;align-items:center">
+        <span id="mkt-update" style="font-size:.65rem;color:var(--muted)">—</span>
+        <button class="btn btn-ghost btn-sm" onclick="refreshMarket()">↻ Actualizar</button>
+      </div>
+    </div>
+    <!-- Watchlist editor -->
+    <div style="margin-bottom:.8rem">
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.4rem">Tu watchlist — clic en ✕ para quitar, agrega con el campo abajo:</div>
+      <div id="watchlist-tags" style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.5rem"></div>
+      <div class="mkt-add-row">
+        <select id="mkt-preset" style="font-size:.78rem;padding:.3rem .5rem;width:auto">
+          <optgroup label="Crypto">
+            <option value="crypto:bitcoin:BTC">BTC — Bitcoin</option>
+            <option value="crypto:ethereum:ETH">ETH — Ethereum</option>
+            <option value="crypto:solana:SOL">SOL — Solana</option>
+            <option value="crypto:binancecoin:BNB">BNB — Binance</option>
+            <option value="crypto:ripple:XRP">XRP — Ripple</option>
+            <option value="crypto:cardano:ADA">ADA — Cardano</option>
+            <option value="crypto:dogecoin:DOGE">DOGE — Dogecoin</option>
+          </optgroup>
+          <optgroup label="Acciones / ETFs">
+            <option value="stock:AAPL:AAPL">AAPL — Apple</option>
+            <option value="stock:TSLA:TSLA">TSLA — Tesla</option>
+            <option value="stock:NVDA:NVDA">NVDA — Nvidia</option>
+            <option value="stock:AMZN:AMZN">AMZN — Amazon</option>
+            <option value="stock:MSFT:MSFT">MSFT — Microsoft</option>
+            <option value="stock:GOOGL:GOOGL">GOOGL — Google</option>
+            <option value="stock:META:META">META — Meta</option>
+            <option value="stock:SPY:SPY">SPY — S&P 500 ETF</option>
+            <option value="stock:QQQ:QQQ">QQQ — Nasdaq ETF</option>
+            <option value="stock:GLD:GLD">GLD — Oro ETF</option>
+          </optgroup>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="addToWatchlist()">+ Agregar</button>
+        <span style="font-size:.7rem;color:var(--muted)">o ticker manual:</span>
+        <input type="text" id="mkt-custom" placeholder="Ej: BABA" style="width:90px;font-size:.78rem;padding:.3rem .5rem">
+        <select id="mkt-custom-type" style="font-size:.78rem;padding:.3rem .5rem;width:auto">
+          <option value="stock">Acción</option>
+          <option value="crypto">Crypto</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="addCustomTicker()">+ Agregar</button>
+      </div>
+    </div>
+    <div id="mkt-grid" class="mkt-grid"></div>
   </div>
 </div>
 
@@ -1161,7 +1365,7 @@ function notify(msg) {
 //  TABS
 // ═══════════════════════════════════════════════
 let activeTab = 'dashboard';
-const TAB_IDS = ['dashboard', 'movimientos', 'metas', 'analisis', 'gastos-fijos', 'config'];
+const TAB_IDS = ['dashboard', 'movimientos', 'metas', 'analisis', 'gastos-fijos', 'ahorros', 'inversiones', 'config'];
 
 function goTab(t) {
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', TAB_IDS[i] === t));
@@ -1171,7 +1375,9 @@ function goTab(t) {
   if (t === 'analisis')    renderAnalisis();
   if (t === 'movimientos') renderMov();
   if (t === 'metas')       renderMetas();
-  if (t === 'gastos-fijos') renderGastosFijos();
+  if (t === 'gastos-fijos')  renderGastosFijos();
+  if (t === 'ahorros')        renderAhorros();
+  if (t === 'inversiones')    { renderInversiones(); renderWatchlistTags(); if(!Object.keys(mktData).length) refreshMarket(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -1332,6 +1538,8 @@ function renderDash() {
   renderChMain();
   renderGoalProg();
   renderDashGF();
+  renderDashAhorros();
+  renderDashInversiones();
 }
 
 function renderCatBd(txs, id) {
@@ -1347,6 +1555,36 @@ function renderCatBd(txs, id) {
       <div class="cb"><div class="cf" style="width:${total ? Math.round(amt / total * 100) : 0}%"></div></div>
       <div class="ca">$${fmt(amt)}</div>
     </div>`).join('');
+}
+
+function renderDashAhorros() {
+  const el = document.getElementById('dash-ahorros');
+  if (!el) return;
+  const saldo = S.ahorros ? S.ahorros.saldo : 0;
+  const movs  = S.ahorros ? S.ahorros.movimientos.length : 0;
+  el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent)">$${fmt(saldo)}</div>
+    <div style="font-size:.7rem;color:var(--muted)">${movs} movimiento${movs !== 1 ? 's' : ''}</div>
+  </div>`;
+}
+
+function renderDashInversiones() {
+  const el = document.getElementById('dash-inversiones');
+  if (!el) return;
+  if (!S.inversiones || !S.inversiones.length) { el.innerHTML = '<div class="empty">Sin inversiones</div>'; return; }
+  const totalInv = S.inversiones.reduce((a, i) => a + i.invertido, 0);
+  const totalAct = S.inversiones.reduce((a, i) => a + i.actual, 0);
+  const gan = totalAct - totalInv;
+  const pct = totalInv > 0 ? (gan / totalInv * 100) : 0;
+  const s   = pct >= 0 ? '+' : '';
+  const dcls = pct > 0 ? 'pos' : pct < 0 ? 'neg' : 'neu';
+  el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem">
+    <div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.35rem">$${fmt(totalAct)}</div>
+      <div style="font-size:.68rem;color:var(--muted)">de $${fmt(totalInv)} invertidos · ${S.inversiones.length} activo${S.inversiones.length !== 1 ? 's' : ''}</div>
+    </div>
+    <span class="inv-diff ${dcls}">${s}${pct.toFixed(1)}%&nbsp;${gan >= 0 ? '+' : ''}$${fmt(Math.abs(gan))}</span>
+  </div>`;
 }
 
 function renderDashGF() {
@@ -1689,6 +1927,368 @@ function renderGastosFijos() {
   }).join('');
 }
 
+
+// ═══════════════════════════════════════════════
+//  AHORROS
+// ═══════════════════════════════════════════════
+let ahTipo = 'deposito';
+function setAhTipo(t) {
+  ahTipo = t;
+  document.getElementById('ah-btn-dep').classList.toggle('active', t === 'deposito');
+  document.getElementById('ah-btn-ret').classList.toggle('active', t === 'retiro');
+}
+
+function addAhorro() {
+  const monto = parseFloat(document.getElementById('ah-monto').value);
+  const desc  = document.getElementById('ah-desc').value.trim() || (ahTipo === 'deposito' ? 'Depósito a ahorros' : 'Retiro de ahorros');
+  if (!monto || monto <= 0) { notify('⚠️ Ingresa un monto válido'); return; }
+  if (ahTipo === 'retiro' && monto > S.ahorros.saldo) { notify('⚠️ Saldo insuficiente'); return; }
+
+  const rate = activeRate();
+  const mov = {
+    id: Date.now(), tipo: ahTipo, monto, desc,
+    fecha: new Date().toISOString().slice(0, 10)
+  };
+  S.ahorros.movimientos.unshift(mov);
+  S.ahorros.saldo = +(S.ahorros.saldo + (ahTipo === 'deposito' ? monto : -monto)).toFixed(2);
+
+  // Reflejar en movimientos generales
+  const tx = {
+    id: mov.id + 1, type: ahTipo === 'deposito' ? 'income' : 'expense',
+    desc: desc + ' (Ahorros)',
+    date: mov.fecha, cat: ahTipo === 'deposito' ? 'Ahorros' : 'Ahorros',
+    amountUSD: monto,
+    amountBS: rate ? monto * rate : null,
+    rateUsed: rate || null, rateKey: activeRateKey,
+    originalCurrency: 'USD', esAhorro: true
+  };
+  S.transactions.unshift(tx);
+
+  persist(); renderAhorros(); refreshAll();
+  document.getElementById('ah-monto').value = '';
+  document.getElementById('ah-desc').value  = '';
+  notify(ahTipo === 'deposito' ? '✅ Depósito registrado' : '✅ Retiro registrado');
+}
+
+function delAhorro(id) {
+  const mov = S.ahorros.movimientos.find(m => m.id === id);
+  if (!mov) return;
+  S.ahorros.saldo = +(S.ahorros.saldo - (mov.tipo === 'deposito' ? mov.monto : -mov.monto)).toFixed(2);
+  S.ahorros.movimientos = S.ahorros.movimientos.filter(m => m.id !== id);
+  S.transactions = S.transactions.filter(t => t.id !== id + 1);
+  persist(); renderAhorros(); refreshAll(); notify('🗑️ Eliminado');
+}
+
+function renderAhorros() {
+  if (!S.ahorros) return;
+  const saldo = S.ahorros.saldo || 0;
+  document.getElementById('ah-saldo').textContent = '$' + fmt(saldo);
+  const deps = S.ahorros.movimientos.filter(m => m.tipo === 'deposito').reduce((a, m) => a + m.monto, 0);
+  const rets = S.ahorros.movimientos.filter(m => m.tipo === 'retiro').reduce((a, m) => a + m.monto, 0);
+  document.getElementById('ah-sub').textContent = `↑ $${fmt(deps)} depositado · ↓ $${fmt(rets)} retirado`;
+
+  const lista = document.getElementById('ah-lista');
+  if (!S.ahorros.movimientos.length) { lista.innerHTML = '<div class="empty">Sin movimientos aún</div>'; return; }
+  lista.innerHTML = S.ahorros.movimientos.map(m => `
+    <div class="mov-row">
+      <div class="mov-ico ${m.tipo === 'deposito' ? 'dep' : 'ret'}">${m.tipo === 'deposito' ? '⬆' : '⬇'}</div>
+      <div class="mov-info"><div class="mov-desc">${m.desc}</div><div class="mov-date">${m.fecha}</div></div>
+      <div class="mov-amt ${m.tipo === 'deposito' ? 'dep' : 'ret'}">${m.tipo === 'deposito' ? '+' : '-'}$${fmt(m.monto)}</div>
+      <button class="mov-del" onclick="delAhorro(${m.id})">✕</button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  INVERSIONES
+// ═══════════════════════════════════════════════
+const INV_TIPO_ICO = { crypto:'🪙', acciones:'📊', inmueble:'🏠', negocio:'💼', otro:'📦' };
+
+function addInversion() {
+  const name      = document.getElementById('inv-name').value.trim();
+  const tipo      = document.getElementById('inv-tipo').value;
+  const ico       = document.getElementById('inv-ico').value;
+  const invertido = parseFloat(document.getElementById('inv-invertido').value);
+  const actual    = parseFloat(document.getElementById('inv-actual').value) || invertido;
+  const desc      = document.getElementById('inv-desc').value.trim();
+  if (!name || !invertido || invertido <= 0) { notify('⚠️ Nombre y monto requeridos'); return; }
+
+  const rate = activeRate();
+  const inv = { id: Date.now(), name, tipo, ico, invertido, actual, desc, fecha: new Date().toISOString().slice(0,10) };
+  S.inversiones.push(inv);
+
+  // Registrar en movimientos
+  const tx = {
+    id: inv.id + 1, type: 'expense',
+    desc: 'Inversión: ' + name,
+    date: inv.fecha, cat: 'Inversiones',
+    amountUSD: invertido,
+    amountBS: rate ? invertido * rate : null,
+    rateUsed: rate || null, rateKey: activeRateKey,
+    originalCurrency: 'USD', esInversion: true
+  };
+  S.transactions.unshift(tx);
+
+  persist(); renderInversiones(); refreshAll();
+  ['inv-name','inv-invertido','inv-actual','inv-desc'].forEach(id => document.getElementById(id).value = '');
+  notify('✅ Inversión agregada');
+}
+
+function updateInvActual(id) {
+  const val = parseFloat(document.getElementById('inv-actual-' + id).value);
+  if (isNaN(val) || val < 0) { notify('⚠️ Valor inválido'); return; }
+  const inv = S.inversiones.find(i => i.id === id);
+  if (!inv) return;
+  inv.actual = val;
+  inv.ultimaActualizacion = new Date().toISOString().slice(0,10);
+  persist(); renderInversiones(); renderDash(); notify('✅ Valor actualizado');
+}
+
+function delInversion(id) {
+  S.inversiones = S.inversiones.filter(i => i.id !== id);
+  S.transactions = S.transactions.filter(t => t.id !== id + 1);
+  persist(); renderInversiones(); refreshAll(); notify('🗑️ Eliminado');
+}
+
+function renderInversiones() {
+  if (!S.inversiones) return;
+  const totalInv = S.inversiones.reduce((a, i) => a + i.invertido, 0);
+  const totalAct = S.inversiones.reduce((a, i) => a + i.actual, 0);
+  const ganancia = totalAct - totalInv;
+  const pct      = totalInv > 0 ? ((ganancia / totalInv) * 100) : 0;
+  const sign     = pct >= 0 ? '+' : '';
+  const diffCls  = pct > 0 ? 'pos' : pct < 0 ? 'neg' : 'neu';
+
+  const sumEl = document.getElementById('inv-summary');
+  if (sumEl) sumEl.innerHTML = `
+    <div class="inv-sum-card"><div class="inv-sum-lbl">Total Invertido</div>
+      <div class="inv-sum-val">$${fmt(totalInv)}</div></div>
+    <div class="inv-sum-card"><div class="inv-sum-lbl">Valor Actual</div>
+      <div class="inv-sum-val">$${fmt(totalAct)}</div></div>
+    <div class="inv-sum-card"><div class="inv-sum-lbl">Ganancia / Pérdida</div>
+      <div class="inv-sum-val" style="color:${ganancia >= 0 ? 'var(--income)' : 'var(--expense)'}">
+        ${ganancia >= 0 ? '+' : ''}$${fmt(Math.abs(ganancia))}</div>
+      <span class="inv-diff ${diffCls}" style="margin-top:.3rem;display:inline-flex">${sign}${pct.toFixed(1)}%</span>
+    </div>`;
+
+  const lista = document.getElementById('inv-lista');
+  if (!S.inversiones.length) { lista.innerHTML = '<div class="card"><div class="empty">Sin inversiones aún</div></div>'; return; }
+
+  lista.innerHTML = S.inversiones.map(inv => {
+    const gan    = inv.actual - inv.invertido;
+    const p      = inv.invertido > 0 ? (gan / inv.invertido * 100) : 0;
+    const s      = p >= 0 ? '+' : '';
+    const dcls   = p > 0 ? 'pos' : p < 0 ? 'neg' : 'neu';
+    const upd    = inv.ultimaActualizacion ? 'Actualizado ' + inv.ultimaActualizacion : 'Desde ' + inv.fecha;
+    return `<div class="inv-item">
+      <div class="inv-header">
+        <div class="inv-ico">${inv.ico}</div>
+        <div class="inv-name">${inv.name}</div>
+        <span class="inv-type">${INV_TIPO_ICO[inv.tipo] || ''} ${inv.tipo}</span>
+        <span class="inv-diff ${dcls}">${s}${p.toFixed(1)}%</span>
+        <button class="inv-del" onclick="delInversion(${inv.id})">✕</button>
+      </div>
+      <div class="inv-nums">
+        <div class="inv-num"><div class="inv-num-lbl">Invertido</div>
+          <div class="inv-num-val">$${fmt(inv.invertido)}</div></div>
+        <div class="inv-num"><div class="inv-num-lbl">Valor actual</div>
+          <div class="inv-num-val">$${fmt(inv.actual)}</div></div>
+        <div class="inv-num"><div class="inv-num-lbl">G/P</div>
+          <div class="inv-num-val" style="color:${gan >= 0 ? 'var(--income)' : 'var(--expense)'}">
+            ${gan >= 0 ? '+' : ''}$${fmt(Math.abs(gan))}</div></div>
+      </div>
+      ${inv.desc ? `<div style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">${inv.desc}</div>` : ''}
+      <div style="font-size:.65rem;color:var(--muted);margin-bottom:.5rem">${upd}</div>
+      <div class="inv-actions">
+        <input type="number" id="inv-actual-${inv.id}" placeholder="Nuevo valor actual…" min="0" step="0.01"
+          style="flex:1;font-size:.78rem;padding:.3rem .55rem">
+        <button class="btn btn-ghost btn-sm" onclick="updateInvActual(${inv.id})">Actualizar valor</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ═══════════════════════════════════════════════
+//  MERCADO EN TIEMPO REAL
+// ═══════════════════════════════════════════════
+const MKT_CHARTS = {};
+let mktData = {}; // cache { key: { price, change, history } }
+
+function addToWatchlist() {
+  const val = document.getElementById('mkt-preset').value;
+  if (!val) return;
+  if (!S.watchlist.includes(val)) {
+    S.watchlist.push(val);
+    persist(); renderWatchlistTags(); refreshMarket();
+    notify('✅ Agregado a watchlist');
+  } else { notify('Ya está en tu watchlist'); }
+}
+
+function addCustomTicker() {
+  const raw  = document.getElementById('mkt-custom').value.trim().toUpperCase();
+  const type = document.getElementById('mkt-custom-type').value;
+  if (!raw) return;
+  const key = type + ':' + raw.toLowerCase() + ':' + raw;
+  if (!S.watchlist.includes(key)) {
+    S.watchlist.push(key);
+    persist(); renderWatchlistTags(); refreshMarket();
+    document.getElementById('mkt-custom').value = '';
+    notify('✅ ' + raw + ' agregado');
+  } else { notify('Ya está en tu watchlist'); }
+}
+
+function removeFromWatchlist(key) {
+  S.watchlist = S.watchlist.filter(k => k !== key);
+  if (MKT_CHARTS[key]) { try { MKT_CHARTS[key].destroy(); } catch{} delete MKT_CHARTS[key]; }
+  persist(); renderWatchlistTags(); renderMarketGrid();
+}
+
+function renderWatchlistTags() {
+  const el = document.getElementById('watchlist-tags');
+  if (!el) return;
+  if (!S.watchlist || !S.watchlist.length) { el.innerHTML = '<span style="font-size:.7rem;color:var(--muted)">Watchlist vacía</span>'; return; }
+  el.innerHTML = S.watchlist.map(k => {
+    const parts = k.split(':');
+    const sym   = parts[2] || parts[1];
+    const type  = parts[0];
+    return `<span class="watchlist-tag">
+      <span class="mkt-badge ${type}">${type === 'crypto' ? '🪙' : '📊'}</span>
+      <span>${sym}</span>
+      <button onclick="removeFromWatchlist('${k}')">✕</button>
+    </span>`;
+  }).join('');
+}
+
+async function fetchCryptoData(coinId, sym) {
+  try {
+    const [priceRes, histRes] = await Promise.all([
+      fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`),
+      fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7&interval=daily`)
+    ]);
+    const priceData = await priceRes.json();
+    const histData  = await histRes.json();
+    const price  = priceData[coinId]?.usd;
+    const change = priceData[coinId]?.usd_24h_change;
+    const history = histData.prices ? histData.prices.map(p => p[1]) : [];
+    return { price, change, history, sym, type: 'crypto' };
+  } catch { return null; }
+}
+
+async function fetchStockData(ticker) {
+  // Yahoo Finance v8 via allorigins proxy
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=8d`;
+    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const res  = await fetch(proxy);
+    const data = await res.json();
+    const meta   = data.chart?.result?.[0]?.meta;
+    const closes = data.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
+    const price  = meta?.regularMarketPrice;
+    const prev   = meta?.chartPreviousClose;
+    const change = prev ? ((price - prev) / prev * 100) : null;
+    const history = closes.filter(v => v != null);
+    return { price, change, history, sym: ticker, type: 'stock' };
+  } catch { return null; }
+}
+
+async function refreshMarket() {
+  if (!S.watchlist || !S.watchlist.length) return;
+  document.getElementById('mkt-update').textContent = '⏳ Cargando…';
+  renderMarketGrid(true); // show skeletons
+
+  const results = await Promise.all(S.watchlist.map(async key => {
+    const [type, id, sym] = key.split(':');
+    let data = null;
+    if (type === 'crypto') data = await fetchCryptoData(id, sym);
+    else                   data = await fetchStockData(sym || id.toUpperCase());
+    if (data) mktData[key] = data;
+    return key;
+  }));
+
+  const now = new Date();
+  document.getElementById('mkt-update').textContent =
+    'Actualizado ' + now.toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit'});
+  renderMarketGrid(false);
+}
+
+function renderMarketGrid(loading = false) {
+  const grid = document.getElementById('mkt-grid');
+  if (!grid) return;
+  if (!S.watchlist || !S.watchlist.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Agrega activos a tu watchlist arriba</div>';
+    return;
+  }
+
+  // Destroy old charts
+  Object.keys(MKT_CHARTS).forEach(k => { try { MKT_CHARTS[k].destroy(); } catch{} delete MKT_CHARTS[k]; });
+
+  grid.innerHTML = S.watchlist.map(key => {
+    const [type, id, sym] = key.split(':');
+    const d = mktData[key];
+    const symLabel = sym || id.toUpperCase();
+
+    if (loading || !d) {
+      return `<div class="mkt-card">
+        <div class="mkt-top">
+          <span class="mkt-sym">${symLabel}</span>
+          <span class="mkt-badge ${type}">${type === 'crypto' ? 'Crypto' : 'Acción'}</span>
+        </div>
+        <div class="mkt-loading">${loading ? '⏳ Cargando…' : '⚠️ Sin datos'}</div>
+      </div>`;
+    }
+
+    const price   = d.price != null ? '$' + (d.price >= 1000 ? fmt(d.price) : d.price.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2})) : '—';
+    const chg     = d.change != null ? (d.change >= 0 ? '+' : '') + d.change.toFixed(2) + '%' : '—';
+    const chgCls  = d.change == null ? '' : d.change >= 0 ? 'up' : 'down';
+    const safeKey = key.replace(/[^a-zA-Z0-9]/g, '_');
+
+    return `<div class="mkt-card">
+      <div class="mkt-top">
+        <span class="mkt-sym">${symLabel}</span>
+        <span class="mkt-name">${type === 'crypto' ? id : ''}</span>
+        <span class="mkt-badge ${type}">${type === 'crypto' ? 'Crypto' : 'Acción'}</span>
+      </div>
+      <div class="mkt-price">${price}</div>
+      <div class="mkt-change ${chgCls}">${chg} 24h</div>
+      <div class="mkt-chart"><canvas id="mc_${safeKey}"></canvas></div>
+    </div>`;
+  }).join('');
+
+  // Draw mini charts
+  requestAnimationFrame(() => {
+    S.watchlist.forEach(key => {
+      const d = mktData[key];
+      if (!d || !d.history || d.history.length < 2) return;
+      const safeKey = key.replace(/[^a-zA-Z0-9]/g, '_');
+      const canvas  = document.getElementById('mc_' + safeKey);
+      if (!canvas) return;
+      const isUp    = d.history[d.history.length - 1] >= d.history[0];
+      const color   = isUp ? '#60f0a8' : '#f07860';
+      try {
+        MKT_CHARTS[key] = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: d.history.map((_, i) => i === 0 ? '7d' : i === d.history.length - 1 ? 'Hoy' : ''),
+            datasets: [{ data: d.history, borderColor: color, borderWidth: 2,
+              pointRadius: 0, tension: 0.4, fill: true,
+              backgroundColor: (ctx) => {
+                const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 55);
+                g.addColorStop(0, color + '40'); g.addColorStop(1, color + '00'); return g;
+              }
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false }, tooltip: {
+              callbacks: { label: ctx => '$' + ctx.parsed.y.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) }
+            }},
+            scales: { x: { display: false }, y: { display: false } }
+          }
+        });
+      } catch(e) { console.warn('Chart error', key, e); }
+    });
+  });
+}
+
 // ═══════════════════════════════════════════════
 //  REFRESH
 // ═══════════════════════════════════════════════
@@ -1697,7 +2297,9 @@ function refreshAll() {
   if (activeTab === 'movimientos') renderMov();
   if (activeTab === 'metas')       renderMetas();
   if (activeTab === 'analisis')    renderAnalisis();
-  if (activeTab === 'gastos-fijos') renderGastosFijos();
+  if (activeTab === 'gastos-fijos')  renderGastosFijos();
+  if (activeTab === 'ahorros')         renderAhorros();
+  if (activeTab === 'inversiones')     renderInversiones();
 }
 
 // ═══════════════════════════════════════════════
@@ -1873,6 +2475,9 @@ function migrateData(data) {
   if (!d.goals) d.goals = [];
   if (!d.gastosFijos) d.gastosFijos = [];
   if (!d.gfPagos)     d.gfPagos = {};
+  if (!d.ahorros)     d.ahorros = { saldo: 0, movimientos: [] };
+  if (!d.inversiones) d.inversiones = [];
+  if (!d.watchlist)   d.watchlist = ['crypto:bitcoin:BTC','crypto:ethereum:ETH','stock:AAPL:AAPL','stock:TSLA:TSLA','stock:NVDA:NVDA'];
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
       t.amountUSD = t.amount || 0; t.amountBS = null;
