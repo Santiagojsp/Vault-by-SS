@@ -1633,6 +1633,7 @@ function goTab(t) {
   const panel = document.getElementById('panel-' + t);
   if (panel) panel.classList.add('active');
   activeTab = t;
+  if (t !== 'movimientos') editingTxId = null;
   if (t === 'dashboard')    { renderDash(); renderAnalisis(); }
   if (t === 'movimientos')  renderMov();
   if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
@@ -1913,7 +1914,7 @@ function renderDash() {
 
   const recent = [...S.transactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
   document.getElementById('dash-txl').innerHTML = recent.length
-    ? recent.map(txHtml).join('')
+    ? recent.map(t => txHtml(t)).join('')
     : `<div class="empty" style="padding:1.8rem 1rem">
         <div style="font-size:1.5rem;margin-bottom:.6rem;opacity:.4">◈</div>
         <div style="font-weight:500;margin-bottom:.3rem">Sin movimientos aún</div>
