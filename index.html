@@ -1643,11 +1643,18 @@ function goTab(t) {
 //  ADD TRANSACTION
 // ═══════════════════════════════════════════════
 function addTx() {
-  const type   = document.getElementById('tx-type').value;
-  const desc   = document.getElementById('tx-desc').value.trim();
-  const rawAmt = parseFloat(document.getElementById('tx-amt').value);
-  const date   = document.getElementById('tx-date').value;
-  const cat    = document.getElementById('tx-cat').value;
+  const typeEl = document.getElementById('tx-type');
+  const descEl = document.getElementById('tx-desc');
+  const amtEl  = document.getElementById('tx-amt');
+  const dateEl = document.getElementById('tx-date');
+  const catEl  = document.getElementById('tx-cat');
+
+  const type   = typeEl.value;
+  const desc   = descEl.value.trim();
+  const rawAmt = parseFloat(amtEl.value);
+  const date   = dateEl.value;
+  const cat    = catEl.value;
+
   if (!desc || !rawAmt || rawAmt <= 0 || !date) { notify('Completa todos los campos'); return; }
 
   const rate = activeRate();
@@ -1663,21 +1670,44 @@ function addTx() {
     rateUsed  = rate;
   }
 
+  // Guardar en estado
   S.transactions.unshift({
     id: Date.now(), type, desc, date, cat,
     amountUSD, amountBS, rateUsed,
     rateKey: activeRateKey,
     originalCurrency: txCur
   });
-  persist();
-  renderDash();
-  renderMov();
-  renderHeaderSummary();
-  document.getElementById('tx-desc').value  = '';
-  document.getElementById('tx-amt').value   = '';
+
+  // Persistir
+  try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+  schedSave();
+
+  // Limpiar formulario ANTES de renderizar para evitar confusión visual
+  descEl.value = '';
+  amtEl.value  = '';
+  dateEl.value = new Date().toISOString().slice(0, 10);
   document.getElementById('tx-preview').innerHTML = '—';
-  document.getElementById('tx-date').value  = new Date().toISOString().slice(0,10);
   updRateStripInfo();
+
+  // Renderizar lista de movimientos directamente sobre el DOM
+  const txlEl = document.getElementById('full-txl');
+  if (txlEl) {
+    const ft     = document.getElementById('ft')?.value || 'all';
+    const fc     = document.getElementById('fc')?.value || 'all';
+    const search = (document.getElementById('fsearch')?.value || '').toLowerCase().trim();
+    let txs = mTxs().sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (ft !== 'all') txs = txs.filter(t => t.type === ft);
+    if (fc !== 'all') txs = txs.filter(t => t.cat === fc);
+    if (search)       txs = txs.filter(t => t.desc.toLowerCase().includes(search) || (t.cat||'').toLowerCase().includes(search));
+    txlEl.innerHTML = txs.length
+      ? txs.map(txHtml).join('')
+      : '<div class="empty">Sin movimientos para este filtro</div>';
+  }
+
+  // Actualizar dashboard y header
+  renderDash();
+  renderHeaderSummary();
+
   notify(type === 'income' ? 'Ingreso registrado' : 'Gasto registrado');
 }
 
