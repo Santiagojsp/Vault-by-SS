@@ -186,6 +186,15 @@ header{display:flex;align-items:center;justify-content:space-between;
 .cat-chip .chip-del{cursor:pointer;opacity:.5;font-size:.8rem;line-height:1;}
 .cat-chip .chip-del:hover{opacity:1;}
 .note-field{font-size:.78rem;color:var(--muted);margin-top:.15rem;font-style:italic;}
+.cuenta-chip{display:inline-flex;align-items:center;gap:.28rem;padding:.18rem .6rem;border-radius:99px;font-size:.72rem;font-weight:500;border:1px solid transparent;cursor:default;}
+.cuenta-badge{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cuentas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem;margin-top:.6rem;}
+.cuenta-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.65rem .8rem;position:relative;}
+.cuenta-card .cc-label{font-size:.7rem;color:var(--muted);margin-bottom:.15rem;}
+.cuenta-card .cc-name{font-size:.88rem;font-weight:600;margin-bottom:.1rem;}
+.cuenta-card .cc-saldo{font-size:1.05rem;font-weight:700;color:var(--accent);}
+.cuenta-card .cc-del{position:absolute;top:.4rem;right:.5rem;font-size:.75rem;cursor:pointer;opacity:.4;background:none;border:none;color:var(--fg);}
+.cuenta-card .cc-del:hover{opacity:1;}
 .cfg-label{font-size:.82rem;}
 .cfg-sub{font-size:.7rem;color:var(--muted);margin-top:.15rem;}
 /* AHORROS & INVERSIONES */
@@ -763,7 +772,44 @@ canvas{width:100%!important;}
 
   <!-- KPIs históricos -->
   <div class="kpi-row" id="an-kpi" style="margin-bottom:1rem"></div>
+  <div id="net-worth-card" style="margin-bottom:1rem;display:none">
+    <div class="card" style="background:linear-gradient(135deg,#0d1117 0%,#111820 100%);border:1px solid rgba(200,240,96,.18)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">
+        <div>
+          <div style="font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem">Patrimonio neto</div>
+          <div id="nw-total" style="font-size:2rem;font-weight:700;font-family:'DM Serif Display',serif;color:var(--accent);letter-spacing:-.01em">$0</div>
+        </div>
+        <div style="display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-end">
+          <div style="text-align:right">
+            <div style="font-size:.68rem;color:var(--muted)">Ahorros</div>
+            <div id="nw-ahorros" style="font-size:1rem;font-weight:600;color:var(--income)">$0</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.68rem;color:var(--muted)">Inversiones</div>
+            <div id="nw-inv" style="font-size:1rem;font-weight:600;color:#60a5fa">$0</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.68rem;color:var(--muted)">Flujo del mes</div>
+            <div id="nw-flujo" style="font-size:1rem;font-weight:600">$0</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.68rem;color:var(--muted)">Tasa ahorro</div>
+            <div id="nw-savepct" style="font-size:1rem;font-weight:600;color:var(--accent)">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- Saldos por cuenta -->
+  <div id="cuentas-widget" style="margin-bottom:1rem;display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <div class="ct" style="margin-bottom:0">Mis Cuentas</div>
+      </div>
+      <div class="cuentas-grid" id="cuentas-dash-grid"></div>
+    </div>
+  </div>
   <!-- Presupuesto por categoría -->
   <div id="budget-widget" style="margin-bottom:1rem;display:none">
     <div class="card">
@@ -798,6 +844,8 @@ canvas{width:100%!important;}
         <select id="tx-cat" onchange="onCatChange(this.value)"></select></div>
       <div style="grid-column:span 2"><label>Nota <span style="font-size:.7rem;color:var(--muted)">(opcional)</span></label>
         <input type="text" id="tx-note" placeholder="Referencia, número de factura…" maxlength="120"></div>
+      <div><label>Cuenta <span style="font-size:.7rem;color:var(--muted)">(opcional)</span></label>
+        <select id="tx-cuenta" style="width:100%"></select></div>
     </div>
     <div class="fg fg-tx-bot">
       <div><label>Moneda entrada</label>
@@ -870,6 +918,28 @@ canvas{width:100%!important;}
           Claro
         </button>
       </div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Mis Cuentas</div>
+    <div class="cfg-row" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+      <div style="display:flex;gap:.45rem;width:100%;flex-wrap:wrap">
+        <input type="text" id="nueva-cuenta-nombre" placeholder="Nombre (ej: Zelle)" style="flex:1;min-width:110px;font-size:.8rem">
+        <select id="nueva-cuenta-tipo" style="width:110px;font-size:.8rem">
+          <option value="banco">Banco</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="digital">Digital/App</option>
+          <option value="crypto">Crypto</option>
+          <option value="otro">Otro</option>
+        </select>
+        <select id="nueva-cuenta-moneda" style="width:80px;font-size:.8rem">
+          <option value="USD">USD</option>
+          <option value="BS">Bs.</option>
+        </select>
+        <input type="color" id="nueva-cuenta-color" value="#c8f060" title="Color" style="width:36px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1px solid var(--border)">
+        <button class="btn btn-acc btn-sm" onclick="addCuenta()">+ Añadir</button>
+      </div>
+      <div id="cuentas-config-list" style="width:100%"></div>
     </div>
   </div>
   <div class="card" style="margin-bottom:1rem">
@@ -1306,8 +1376,8 @@ function persist() {
 // ═══════════════════════════════════════════════
 //  RATES STATE
 // ═══════════════════════════════════════════════
-const RATES_CACHE_KEY = 'fp_rates_cache_v3';
-const RATES_CACHE_TS  = 'fp_rates_ts_v3';
+const RATES_CACHE_KEY = 'fp_rates_cache_v4';
+const RATES_CACHE_TS  = 'fp_rates_ts_v4';
 
 let rates = {
   bcv:    {},
@@ -1337,9 +1407,9 @@ function activeRate() {
 // Valores semilla (actualizados al momento de compilar la app).
 // Se usan SOLO si todos los proxies fallan y no hay caché.
 const SEED = {
-  bcv:  { compra: 440.10, venta: 441.83, promedio: 440.97, fecha: '2026-03-12', fuente: 'Semilla · actualizar con Custom' },
-  euro: { compra: 476.50, venta: 478.31, promedio: 477.40, fecha: '2026-03-12', fuente: 'Semilla · actualizar con Custom' },
-  usdt: { compra: 445.00, venta: 448.00, promedio: 446.50, fecha: '2026-03-12', fuente: 'Semilla · actualizar con Custom' },
+  bcv:  { compra: 443.26, venta: 443.26, promedio: 443.26, fecha: '2026-03-13', fuente: 'Semilla · actualizar con Custom' },
+  euro: { compra: 510.34, venta: 510.34, promedio: 510.34, fecha: '2026-03-13', fuente: 'Semilla · actualizar con Custom' },
+  usdt: { compra: 618.00, venta: 622.00, promedio: 620.00, fecha: '2026-03-13', fuente: 'Semilla · actualizar con Custom' },
 };
 
 // Proxies CORS en orden de preferencia
@@ -1354,6 +1424,11 @@ const ENDPOINTS = {
   euro: 'https://ve.dolarapi.com/v1/euros/oficial',
   usdt: 'https://ve.dolarapi.com/v1/dolares/paralelo',
 };
+// USDT fallback sources (tried in order if primary fails or returns stale data)
+const USDT_FALLBACKS = [
+  'https://pydolarve.org/api/v1/dollar?page=criptodolar&monitor=usdt',
+  'https://api.exchangedolar.com/?monitor=usdtcash',
+];
 
 async function fetchWithProxies(targetUrl) {
   for (const proxy of PROXIES) {
@@ -1380,6 +1455,49 @@ function norm(obj, fuente) {
   };
 }
 
+// Fetch USDT from multiple sources, pick the one that looks most current
+// (highest promedio, assuming stale data tends to be lower)
+async function fetchUSDT() {
+  const sources = [
+    { url: ENDPOINTS.usdt, label: 'dolarapi.com', parse: d => d },
+    ...USDT_FALLBACKS.map(url => ({ url, label: url.includes('pydolarve') ? 'pydolarve.org' : 'exchangedolar.com', parse: d => {
+      // pydolarve returns { monitors: { usdt: { price, buy, sell } } } or similar
+      if (d && d.price) return { promedio: d.price, compra: d.buy || d.price, venta: d.sell || d.price };
+      if (d && d.monitors && d.monitors.usdt) {
+        const u = d.monitors.usdt;
+        return { promedio: u.price || u.last_update, compra: u.buy || u.price, venta: u.sell || u.price };
+      }
+      if (d && d.usdt) return d.usdt;
+      return d;
+    }})),
+  ];
+
+  const results = [];
+  for (const src of sources) {
+    try {
+      const raw = await fetchWithProxies(src.url);
+      if (!raw) continue;
+      const parsed = src.parse(raw);
+      const val = parseFloat(parsed?.promedio) || parseFloat(parsed?.venta) || 0;
+      if (val > 100) results.push({ val, raw: parsed, label: src.label });
+    } catch {}
+  }
+
+  if (!results.length) return null;
+
+  // Pick highest value (most likely to be current, stale data is usually lower)
+  results.sort((a, b) => b.val - a.val);
+  const best = results[0];
+  const p = best.val;
+  return {
+    compra:   parseFloat(best.raw?.compra)  || p,
+    venta:    parseFloat(best.raw?.venta)   || p,
+    promedio: p,
+    fecha:    best.raw?.fechaActualizacion  || best.raw?.fecha || new Date().toISOString().slice(0, 10),
+    fuente:   'USDT Paralelo · ' + best.label,
+  };
+}
+
 async function fetchAllRates() {
   // 1. Caché 2 horas
   try {
@@ -1396,13 +1514,13 @@ async function fetchAllRates() {
   const [rawBCV, rawEuro, rawUSDT] = await Promise.all([
     fetchWithProxies(ENDPOINTS.bcv),
     fetchWithProxies(ENDPOINTS.euro),
-    fetchWithProxies(ENDPOINTS.usdt),
+    fetchUSDT(),
   ]);
 
   const parsed = {
     bcv:  norm(rawBCV,  'BCV oficial · dolarapi.com'),
     euro: norm(rawEuro, 'Euro BCV · dolarapi.com'),
-    usdt: norm(rawUSDT, 'USDT/Paralelo · dolarapi.com'),
+    usdt: rawUSDT,
   };
 
   // 3. Si alguno falló, usa semilla para ese valor
@@ -1654,8 +1772,11 @@ function mTxs(y = curY, m = curM) {
   });
 }
 
-const totInc = txs => txs.filter(t => t.type === 'income').reduce((a, t) => a + (t.amountUSD || 0), 0);
-const totExp = txs => txs.filter(t => t.type === 'expense').reduce((a, t) => a + (t.amountUSD || 0), 0);
+const totInc     = txs => txs.filter(t => t.type === 'income').reduce((a, t) => a + (t.amountUSD || 0), 0);
+const totExp     = txs => txs.filter(t => t.type === 'expense').reduce((a, t) => a + (t.amountUSD || 0), 0);
+// Versiones "reales" que excluyen movimientos de ahorro (esAhorro:true)
+const totIncReal = txs => txs.filter(t => t.type === 'income'  && !t.esAhorro).reduce((a, t) => a + (t.amountUSD || 0), 0);
+const totExpReal = txs => txs.filter(t => t.type === 'expense' && !t.esAhorro).reduce((a, t) => a + (t.amountUSD || 0), 0);
 
 let _undoFn = null, _notifTimer = null;
 function notify(msg, undoFn) {
@@ -1694,7 +1815,7 @@ function goTab(t) {
   if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
   if (t === 'gastos-fijos') renderGastosFijos();
   if (t === 'inversiones')  { renderInversiones(); renderWatchlistTags(); if(!Object.keys(mktData).length) refreshMarket(); }
-  if (t === 'config')       { refreshCatSelects(); }
+  if (t === 'config')       { refreshCatSelects(); refreshCuentaSelects(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -1723,11 +1844,13 @@ function addTx() {
     rateUsed  = rate;
   }
 
+  const cuentaId = document.getElementById('tx-cuenta')?.value || null;
   S.transactions.unshift({
     id: Date.now(), type, desc, date, cat, note,
     amountUSD, amountBS, rateUsed,
     rateKey: activeRateKey,
-    originalCurrency: txCur
+    originalCurrency: txCur,
+    cuentaId: cuentaId || null
   });
 
   try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
@@ -1834,6 +1957,7 @@ function txHtml(t, editMode = false) {
       <input id="edit-desc-${t.id}" value="${t.desc.replace(/"/g,'&quot;')}" style="flex:1;min-width:100px;font-size:.8rem;padding:.3rem .5rem">
       <input id="edit-amt-${t.id}"  type="number" value="${t.amountUSD}" step="0.01" min="0" style="width:90px;font-size:.8rem;padding:.3rem .5rem">
       <input id="edit-note-${t.id}" value="${(t.note||'').replace(/"/g,'&quot;')}" placeholder="Nota…" style="width:100%;font-size:.78rem;padding:.25rem .5rem;margin-top:.2rem;grid-column:1/-1">
+      <select id="edit-cuenta-${t.id}" style="font-size:.78rem;padding:.25rem .4rem;grid-column:1/-1">${cuentaOptions(t.cuentaId)}</select>
       <div style="display:flex;gap:.35rem;margin-left:auto">
         <button class="btn btn-acc btn-sm" onclick="saveTxEdit(${t.id})">Guardar</button>
         <button class="btn btn-ghost btn-sm" onclick="editingTxId=null;renderMov()">Cancelar</button>
@@ -1852,6 +1976,7 @@ function txHtml(t, editMode = false) {
     <div class="txi-amt">
       <span class="txi-usd ${t.type}">${t.type === 'income' ? '+' : '-'}$${fmt(t.amountUSD)}</span>
       ${bsLine}
+      ${cuentaChip(t.cuentaId)}
     </div>
     <div class="txi-date">${d}</div>
   </div>`;
@@ -1880,6 +2005,7 @@ function txHtmlFull(t, editMode = false) {
     <div class="txi-amt">
       <span class="txi-usd ${t.type}">${t.type === 'income' ? '+' : '-'}$${fmt(t.amountUSD)}</span>
       ${bsLine}
+      ${cuentaChip(t.cuentaId)}
     </div>
     <div class="txi-date">${d}</div>
     <button class="txi-del" title="Editar" onclick="editTx(${t.id})" style="font-size:.68rem;color:var(--muted)">✎</button>
@@ -1897,14 +2023,16 @@ function saveTxEdit(id) {
   if (!t) { renderMov(); return; }
   const descEl = document.getElementById('edit-desc-' + id);
   const amtEl  = document.getElementById('edit-amt-'  + id);
-  const noteEl = document.getElementById('edit-note-' + id);
+  const noteEl    = document.getElementById('edit-note-'   + id);
+  const cuentaEl  = document.getElementById('edit-cuenta-' + id);
   if (!descEl || !amtEl) { renderMov(); return; }
   const newDesc = descEl.value.trim();
   const newAmt  = parseFloat(amtEl.value);
   if (!newDesc || !newAmt || newAmt <= 0) { notify('Datos inválidos'); return; }
   t.desc      = newDesc;
   t.amountUSD = newAmt;
-  if (noteEl !== null) t.note = noteEl.value.trim();
+  if (noteEl   !== null) t.note     = noteEl.value.trim();
+  if (cuentaEl !== null) t.cuentaId = cuentaEl.value || null;
   if (t.rateUsed) t.amountBS = newAmt * t.rateUsed;
   editingTxId = null;
   try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
@@ -1920,7 +2048,7 @@ function saveTxEdit(id) {
 // ═══════════════════════════════════════════════
 function renderDash() {
   const txs = mTxs();
-  const inc = totInc(txs), exp = totExp(txs), bal = inc - exp;
+  const inc = totIncReal(txs), exp = totExpReal(txs), bal = inc - exp;
   const savRate = inc > 0 ? (bal / inc * 100) : 0;
   const br = activeRate();
   const rk = activeRateKey;
@@ -1931,7 +2059,7 @@ function renderDash() {
   let prevM = curM - 1, prevY = curY;
   if (prevM < 0) { prevM = 11; prevY--; }
   const prevTxs = mTxs(prevY, prevM);
-  const prevInc = totInc(prevTxs), prevExp = totExp(prevTxs), prevBal = prevInc - prevExp;
+  const prevInc = totIncReal(prevTxs), prevExp = totExpReal(prevTxs), prevBal = prevInc - prevExp;
   const mkDelta = (cur, prev) => {
     if (!prev) return '';
     const pct = ((cur - prev) / prev * 100);
@@ -1989,6 +2117,8 @@ function renderDash() {
   renderDashGF();
   renderDashAhorros();
   renderDashInversiones();
+  renderNetWorth();
+  renderCuentasWidget();
   renderBudgetWidget();
   renderHeaderSummary();
   updateGFTabBadge();
@@ -2050,15 +2180,18 @@ function renderHeaderSummary() {
   const el = document.getElementById('header-summary');
   if (!el) return;
   const txs = mTxs();
-  const inc = totInc(txs), exp = totExp(txs), bal = inc - exp;
-  const saldo = S.ahorros ? S.ahorros.saldo : 0;
+  const inc = totIncReal(txs), exp = totExpReal(txs), bal = inc - exp;
   const balColor = bal >= 0 ? 'var(--income)' : 'var(--expense)';
+  const savePct = inc > 0 ? Math.round((bal / inc) * 100) : null;
+  const savePctHtml = savePct !== null
+    ? `<span style="color:var(--muted)">· ahorro <strong style="color:var(--accent)">${savePct}%</strong></span>`
+    : '';
   el.innerHTML = `
     <span style="color:var(--muted)">${MONTHS[curM]}</span>
     <span>↑ <strong style="color:var(--income)">$${fmt(inc)}</strong></span>
     <span>↓ <strong style="color:var(--expense)">$${fmt(exp)}</strong></span>
     <span>= <strong style="color:${balColor}">$${fmt(Math.abs(bal))}${bal < 0 ? ' — déficit' : ''}</strong></span>
-    ${saldo > 0 ? `<span style="color:var(--muted)">· Ahorros <strong style="color:var(--accent)">$${fmt(saldo)}</strong></span>` : ''}
+    ${savePctHtml}
   `;
 }
 
@@ -2232,7 +2365,7 @@ function renderChMain() {
 
 function renderAnalisis() {
   const txsCur = mTxs();
-  const allInc = totInc(S.transactions), allExp = totExp(S.transactions);
+  const allInc = totIncReal(S.transactions), allExp = totExpReal(S.transactions);
   document.getElementById('an-kpi').innerHTML = `
     <div class="kpi"><div class="kpi-label">Ingresos históricos</div><div class="kpi-value pos">$${fmt(allInc)}</div></div>
     <div class="kpi"><div class="kpi-label">Gastos históricos</div><div class="kpi-value neg">$${fmt(allExp)}</div></div>
@@ -3124,7 +3257,7 @@ function refreshAll() {
   if (t === 'gastos-fijos') renderGastosFijos();
   if (t === 'inversiones')  renderInversiones();
   if (t === 'dashboard')    renderAnalisis();
-  if (t === 'config')       refreshCatSelects();
+  if (t === 'config')       { refreshCatSelects(); refreshCuentaSelects(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -3308,6 +3441,7 @@ async function loadFromDrive() {
   }
   refreshAll();
   refreshCatSelects();
+  refreshCuentaSelects();
   renderMetas();
 }
 
@@ -3771,6 +3905,13 @@ function migrateData(data) {
   if (!d.customCats)  d.customCats = [];
   if (!d.budgets)     d.budgets = {};
   d.transactions.forEach(t => { if (t.note === undefined) t.note = ''; });
+  if (!d.cuentas) d.cuentas = [
+    { id: 'c1', nombre: 'Efectivo USD', color: '#c8f060', tipo: 'efectivo', moneda: 'USD' },
+    { id: 'c2', nombre: 'Banco',        color: '#60a5fa', tipo: 'banco',    moneda: 'USD' },
+    { id: 'c3', nombre: 'Zelle',        color: '#a78bfa', tipo: 'digital',  moneda: 'USD' },
+    { id: 'c4', nombre: 'Efectivo Bs.', color: '#fb923c', tipo: 'efectivo', moneda: 'BS'  }
+  ];
+  d.transactions.forEach(t => { if (t.cuentaId === undefined) t.cuentaId = null; });
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
       t.amountUSD = t.amount || 0; t.amountBS = null;
@@ -3951,10 +4092,197 @@ function clearDateFilter() {
 }
 
 
+// ═══════════════════════════════════════════════
+//  NET WORTH + TASA DE AHORRO
+// ═══════════════════════════════════════════════
+function renderNetWorth() {
+  const card = document.getElementById('net-worth-card');
+  if (!card) return;
+
+  const saldoAhorros = S.ahorros ? S.ahorros.saldo : 0;
+
+  // Valor total de inversiones (precio de mercado si disponible, sino costo)
+  let invTotal = 0;
+  if (S.inversiones && S.inversiones.length) {
+    S.inversiones.forEach(grp => {
+      const costTotal = grp.compras.reduce((a, c) => a + (c.monto || 0), 0);
+      const mkt = mktData[grp.wkey];
+      if (mkt && mkt.price) {
+        const units = grp.compras.reduce((a, c) => a + (c.units || 0), 0);
+        invTotal += units > 0 ? units * mkt.price : costTotal;
+      } else {
+        invTotal += costTotal;
+      }
+    });
+  }
+
+  const netWorth = saldoAhorros + invTotal;
+
+  // Flujo del mes (ingresos reales - gastos reales)
+  const txs = mTxs();
+  const inc  = totIncReal(txs);
+  const exp  = totExpReal(txs);
+  const flujo = inc - exp;
+  const savePct = inc > 0 ? Math.round((Math.max(flujo, 0) / inc) * 100) : null;
+
+  // Mostrar card solo si hay algo relevante
+  const hasData = netWorth > 0 || inc > 0 || exp > 0;
+  card.style.display = hasData ? '' : 'none';
+  if (!hasData) return;
+
+  document.getElementById('nw-total').textContent    = '$' + fmt(netWorth);
+  document.getElementById('nw-ahorros').textContent  = '$' + fmt(saldoAhorros);
+  document.getElementById('nw-inv').textContent      = '$' + fmt(invTotal);
+
+  const flujoEl = document.getElementById('nw-flujo');
+  flujoEl.textContent = (flujo >= 0 ? '+$' : '-$') + fmt(Math.abs(flujo));
+  flujoEl.style.color = flujo >= 0 ? 'var(--income)' : 'var(--expense)';
+
+  const savePctEl = document.getElementById('nw-savepct');
+  if (savePct !== null) {
+    savePctEl.textContent = savePct + '%';
+    savePctEl.style.color = savePct >= 20 ? 'var(--accent)' : savePct >= 10 ? '#f59e0b' : '#ef4444';
+  } else {
+    savePctEl.textContent = '—';
+    savePctEl.style.color = 'var(--muted)';
+  }
+}
+
+
+// ═══════════════════════════════════════════════
+//  MULTI-CUENTA
+// ═══════════════════════════════════════════════
+
+const CUENTA_TIPO_ICONS = {
+  banco: '🏦', efectivo: '💵', digital: '📱', crypto: '🔷', otro: '💼'
+};
+
+function getCuenta(id) {
+  return (S.cuentas || []).find(c => c.id === id) || null;
+}
+
+// Chip pequeño que aparece en cada movimiento
+function cuentaChip(cuentaId) {
+  if (!cuentaId) return '';
+  const c = getCuenta(cuentaId);
+  if (!c) return '';
+  return `<span class="cuenta-chip" style="color:${c.color};border-color:${c.color}22;background:${c.color}14;margin-top:.2rem">
+    <span class="cuenta-badge" style="background:${c.color}"></span>${c.nombre}
+  </span>`;
+}
+
+// <option> list para selects de cuenta
+function cuentaOptions(selectedId) {
+  const cuentas = S.cuentas || [];
+  const noneOpt = `<option value="">— Sin cuenta —</option>`;
+  return noneOpt + cuentas.map(c =>
+    `<option value="${c.id}"${c.id === selectedId ? ' selected' : ''}>${CUENTA_TIPO_ICONS[c.tipo] || '💼'} ${c.nombre} (${c.moneda})</option>`
+  ).join('');
+}
+
+// Poblar selector tx-cuenta en el form
+function populateCuentaSelect() {
+  const sel = document.getElementById('tx-cuenta');
+  if (!sel) return;
+  sel.innerHTML = cuentaOptions(null);
+}
+
+// Saldo calculado de una cuenta (movimientos del mes o todos)
+function saldoCuenta(cuentaId, allTime = false) {
+  const txs = allTime ? S.transactions : mTxs();
+  return txs
+    .filter(t => t.cuentaId === cuentaId && !t.esAhorro)
+    .reduce((a, t) => a + (t.type === 'income' ? 1 : -1) * (t.amountUSD || 0), 0);
+}
+
+// Widget de saldos en Dashboard
+function renderCuentasWidget() {
+  const widget = document.getElementById('cuentas-widget');
+  const grid   = document.getElementById('cuentas-dash-grid');
+  if (!widget || !grid) return;
+  const cuentas = S.cuentas || [];
+  // Show only if at least one tx has a cuentaId
+  const hasCuentaTxs = S.transactions.some(t => t.cuentaId);
+  if (!cuentas.length || !hasCuentaTxs) { widget.style.display = 'none'; return; }
+  widget.style.display = '';
+  grid.innerHTML = cuentas.map(c => {
+    const saldo = saldoCuenta(c.id, false);
+    const icon  = CUENTA_TIPO_ICONS[c.tipo] || '💼';
+    return `<div class="cuenta-card" style="border-color:${c.color}33">
+      <div class="cc-label">${icon} ${c.moneda}</div>
+      <div class="cc-name">${c.nombre}</div>
+      <div class="cc-saldo" style="color:${c.color}">${saldo >= 0 ? '+' : ''}$${fmt(saldo)}</div>
+    </div>`;
+  }).join('');
+}
+
+// Lista editable en Config
+function renderCuentasConfigList() {
+  const el = document.getElementById('cuentas-config-list');
+  if (!el) return;
+  const cuentas = S.cuentas || [];
+  if (!cuentas.length) {
+    el.innerHTML = '<p style="font-size:.75rem;color:var(--muted);margin:.4rem 0 0">Sin cuentas configuradas.</p>';
+    return;
+  }
+  el.innerHTML = `<div class="cuentas-grid" style="margin-top:.5rem">` +
+    cuentas.map(c => {
+      const icon = CUENTA_TIPO_ICONS[c.tipo] || '💼';
+      const saldoMes = saldoCuenta(c.id, false);
+      return `<div class="cuenta-card" style="border-color:${c.color}55">
+        <button class="cc-del" onclick="delCuenta('${c.id}')" title="Eliminar">✕</button>
+        <div class="cc-label">${icon} ${c.moneda} · ${c.tipo}</div>
+        <div class="cc-name">${c.nombre}</div>
+        <div class="cc-saldo" style="color:${c.color};font-size:.9rem">${saldoMes >= 0 ? '+' : ''}$${fmt(saldoMes)} <span style="font-size:.65rem;color:var(--muted)">este mes</span></div>
+        <div style="width:100%;height:3px;border-radius:99px;background:${c.color}33;margin-top:.4rem">
+          <div style="height:100%;border-radius:99px;background:${c.color};width:${Math.min(Math.abs(saldoMes)/Math.max(Math.abs(saldoMes),1)*100,100)}%"></div>
+        </div>
+      </div>`;
+    }).join('') + `</div>`;
+}
+
+function addCuenta() {
+  const nombre = document.getElementById('nueva-cuenta-nombre')?.value.trim();
+  const tipo   = document.getElementById('nueva-cuenta-tipo')?.value || 'otro';
+  const moneda = document.getElementById('nueva-cuenta-moneda')?.value || 'USD';
+  const color  = document.getElementById('nueva-cuenta-color')?.value || '#c8f060';
+  if (!nombre) { notify('Escribe un nombre para la cuenta'); return; }
+  if (!S.cuentas) S.cuentas = [];
+  if (S.cuentas.find(c => c.nombre.toLowerCase() === nombre.toLowerCase())) {
+    notify('Ya existe una cuenta con ese nombre'); return;
+  }
+  S.cuentas.push({ id: 'c' + Date.now(), nombre, tipo, moneda, color });
+  document.getElementById('nueva-cuenta-nombre').value = '';
+  persist();
+  refreshCuentaSelects();
+  notify('Cuenta "' + nombre + '" añadida');
+}
+
+function delCuenta(id) {
+  const c = getCuenta(id);
+  if (!c) return;
+  // Check if in use
+  const inUse = S.transactions.filter(t => t.cuentaId === id).length;
+  if (inUse > 0 && !confirm(`Esta cuenta tiene ${inUse} movimiento(s) asignados. ¿Eliminar de todas formas? Los movimientos quedarán sin cuenta.`)) return;
+  S.transactions.forEach(t => { if (t.cuentaId === id) t.cuentaId = null; });
+  S.cuentas = S.cuentas.filter(c => c.id !== id);
+  persist();
+  refreshCuentaSelects();
+  notify('Cuenta eliminada');
+}
+
+function refreshCuentaSelects() {
+  populateCuentaSelect();
+  renderCuentasConfigList();
+  renderCuentasWidget();
+}
+
+
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tx-date').value = new Date().toISOString().slice(0, 10);
   document.getElementById('tx-date').addEventListener('change', () => { updPreview(); updRateStripInfo(); });
   setActiveRate(activeRateKey);
+  populateCuentaSelect();
   // Refresh cat selects when type changes
   const typeEl = document.getElementById('tx-type');
   if (typeEl) typeEl.addEventListener('change', () => refreshCatSelects());
@@ -3974,5 +4302,6 @@ window.addEventListener('load', () => {
   }, 150);
 });
 </script>
+
 </body>
 </html>
