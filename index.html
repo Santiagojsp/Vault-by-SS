@@ -1407,9 +1407,9 @@ function activeRate() {
 // Valores semilla (actualizados al momento de compilar la app).
 // Se usan SOLO si todos los proxies fallan y no hay caché.
 const SEED = {
-  bcv:  { compra: 443.26, venta: 443.26, promedio: 443.26, fecha: '2026-03-13', fuente: 'Semilla · actualizar con Custom' },
-  euro: { compra: 510.34, venta: 510.34, promedio: 510.34, fecha: '2026-03-13', fuente: 'Semilla · actualizar con Custom' },
-  usdt: { compra: 618.00, venta: 622.00, promedio: 620.00, fecha: '2026-03-13', fuente: 'Semilla · actualizar con Custom' },
+  bcv:  { compra: 446.80, venta: 446.80, promedio: 446.80, fecha: '2026-03-15', fuente: 'Semilla · actualizar con Custom' },
+  euro: { compra: 511.22, venta: 511.22, promedio: 511.22, fecha: '2026-03-15', fuente: 'Semilla · actualizar con Custom' },
+  usdt: { compra: 618.00, venta: 622.00, promedio: 620.00, fecha: '2026-03-15', fuente: 'Semilla · actualizar con Custom' },
 };
 
 // Proxies CORS en orden de preferencia
@@ -1430,14 +1430,34 @@ const USDT_FALLBACKS = [
   'https://api.exchangedolar.com/?monitor=usdtcash',
 ];
 
-async function fetchWithProxies(targetUrl) {
+// BCV/Euro fallback sources
+const BCV_FALLBACKS  = [
+  'https://pydolarve.org/api/v1/dollar?page=bcv&monitor=usd',
+  'https://api.exchangedolar.com/?monitor=usd',
+];
+const EURO_FALLBACKS = [
+  'https://pydolarve.org/api/v1/dollar?page=bcv&monitor=eur',
+  'https://api.exchangedolar.com/?monitor=eur',
+];
+
+function isStale(dateStr) {
+  if (!dateStr) return true;
+  const d = new Date(dateStr);
+  if (isNaN(d)) return true;
+  return (Date.now() - d.getTime()) > 3 * 24 * 3600 * 1000; // >3 days = stale
+}
+
+async function fetchWithProxies(targetUrl, allowStale = false) {
   for (const proxy of PROXIES) {
     try {
       const res = await fetch(proxy(targetUrl), { signal: AbortSignal.timeout(6000) });
       if (!res.ok) continue;
       const text = await res.text();
       const data = JSON.parse(text);
-      if (data && (data.promedio || data.venta)) return data;
+      if (!data || (!data.promedio && !data.venta)) continue;
+      // Reject stale unless caller allows it
+      if (!allowStale && isStale(data.fechaActualizacion || data.fecha)) continue;
+      return data;
     } catch { /* next proxy */ }
   }
   return null;
@@ -1505,15 +1525,43 @@ async function fetchAllRates() {
     if (Date.now() - ts < 2 * 3600 * 1000) {
       const c = JSON.parse(localStorage.getItem(RATES_CACHE_KEY) || 'null');
       if (c && c.bcv && c.bcv.promedio) {
-        applyRatesData(c, true); updateUI(); return;
+        // Don't use stale cache either
+        if (!isStale(c.bcv.fecha)) {
+          applyRatesData(c, true); updateUI(); return;
+        }
+        // Cache is stale, clear it and re-fetch
+        localStorage.removeItem(RATES_CACHE_KEY);
+        localStorage.removeItem(RATES_CACHE_TS);
       }
     }
   } catch {}
 
-  // 2. Fetch en paralelo (3 endpoints × N proxies)
+  // 2. Fetch en paralelo, con fallbacks para BCV y Euro
+  async function fetchBCVWithFallback() {
+    // Primary
+    let d = await fetchWithProxies(ENDPOINTS.bcv);
+    if (d) return d;
+    // Fallbacks
+    for (const url of BCV_FALLBACKS) {
+      d = await fetchWithProxies(url);
+      if (d) return d;
+    }
+    // Last resort: allow stale from primary
+    return await fetchWithProxies(ENDPOINTS.bcv, true);
+  }
+  async function fetchEuroWithFallback() {
+    let d = await fetchWithProxies(ENDPOINTS.euro);
+    if (d) return d;
+    for (const url of EURO_FALLBACKS) {
+      d = await fetchWithProxies(url);
+      if (d) return d;
+    }
+    return await fetchWithProxies(ENDPOINTS.euro, true);
+  }
+
   const [rawBCV, rawEuro, rawUSDT] = await Promise.all([
-    fetchWithProxies(ENDPOINTS.bcv),
-    fetchWithProxies(ENDPOINTS.euro),
+    fetchBCVWithFallback(),
+    fetchEuroWithFallback(),
     fetchUSDT(),
   ]);
 
