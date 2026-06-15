@@ -813,8 +813,9 @@ canvas{width:100%!important;}
   <!-- Saldos por cuenta -->
   <div id="cuentas-widget" style="margin-bottom:1rem;display:none">
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
-        <div class="ct" style="margin-bottom:0">Mis Cuentas</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.6rem;flex-wrap:wrap;gap:.4rem">
+        <div class="ct" style="margin-bottom:0">¿Dónde está mi dinero?</div>
+        <div id="cuentas-total" style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--accent);letter-spacing:-.01em"></div>
       </div>
       <div class="cuentas-grid" id="cuentas-dash-grid"></div>
     </div>
@@ -956,6 +957,7 @@ canvas{width:100%!important;}
           <option value="USD">USD</option>
           <option value="BS">Bs.</option>
         </select>
+        <input type="number" id="nueva-cuenta-saldo" placeholder="Saldo actual" min="0" step="0.01" style="width:110px;font-size:.8rem" title="Cuánto tienes ahora en esta cuenta">
         <input type="color" id="nueva-cuenta-color" value="#c8f060" title="Color" style="width:36px;height:36px;padding:2px;border-radius:6px;cursor:pointer;border:1px solid var(--border)">
         <button class="btn btn-acc btn-sm" onclick="addCuenta()">+ Añadir</button>
       </div>
@@ -1967,6 +1969,7 @@ function addTx() {
   }
 
   const cuentaId = document.getElementById('tx-cuenta')?.value || null;
+  if (cuentaId) S.lastCuentaId = cuentaId;
   S.transactions.unshift({
     id: Date.now(), type, desc, date, cat, note,
     amountUSD, amountBS, rateUsed,
@@ -4035,6 +4038,7 @@ function migrateData(data) {
     { id: 'c4', nombre: 'Efectivo Bs.', color: '#fb923c', tipo: 'efectivo', moneda: 'BS'  }
   ];
   d.transactions.forEach(t => { if (t.cuentaId === undefined) t.cuentaId = null; });
+  d.cuentas.forEach(c => { if (typeof c.saldoInicial !== 'number') c.saldoInicial = 0; });
   d.transactions.forEach(t => {
     if (t.amountUSD === undefined) {
       t.amountUSD = t.amount || 0; t.amountBS = null;
@@ -4339,7 +4343,7 @@ function cuentaOptions(selectedId) {
 function populateCuentaSelect() {
   const sel = document.getElementById('tx-cuenta');
   if (!sel) return;
-  sel.innerHTML = cuentaOptions(null);
+  sel.innerHTML = cuentaOptions(S.lastCuentaId || null);
 }
 
 // Saldo calculado de una cuenta (movimientos del mes o todos)
@@ -4350,25 +4354,78 @@ function saldoCuenta(cuentaId, allTime = false) {
     .reduce((a, t) => a + (t.type === 'income' ? 1 : -1) * (t.amountUSD || 0), 0);
 }
 
+// Suma de movimientos de una cuenta en SU PROPIA moneda (sin saldo inicial).
+function cuentaMovsSum(c) {
+  const rate = activeRate();
+  return (S.transactions || [])
+    .filter(t => t.cuentaId === c.id && !t.esAhorro)
+    .reduce((a, t) => {
+      let v;
+      if (c.moneda === 'BS') {
+        v = (typeof t.amountBS === 'number' && t.amountBS != null)
+          ? t.amountBS
+          : (t.amountUSD || 0) * (t.rateUsed || rate || 0);
+      } else {
+        v = (t.amountUSD || 0);
+      }
+      return a + (t.type === 'income' ? 1 : -1) * v;
+    }, 0);
+}
+
+// Saldo real actual de una cuenta: saldo inicial + movimientos, en su moneda,
+// más su equivalente en USD (para cuentas en Bs. se convierte a la tasa actual).
+function saldoCuentaReal(c) {
+  const ini = (typeof c.saldoInicial === 'number') ? c.saldoInicial : 0;
+  const val = ini + cuentaMovsSum(c);
+  if (c.moneda === 'BS') {
+    const rate = activeRate();
+    return { val, cur: 'BS', usd: rate ? val / rate : null };
+  }
+  return { val, cur: 'USD', usd: val };
+}
+
 // Widget de saldos en Dashboard
 function renderCuentasWidget() {
-  const widget = document.getElementById('cuentas-widget');
-  const grid   = document.getElementById('cuentas-dash-grid');
+  const widget  = document.getElementById('cuentas-widget');
+  const grid    = document.getElementById('cuentas-dash-grid');
+  const totalEl = document.getElementById('cuentas-total');
   if (!widget || !grid) return;
   const cuentas = S.cuentas || [];
-  // Show only if at least one tx has a cuentaId
-  const hasCuentaTxs = S.transactions.some(t => t.cuentaId);
-  if (!cuentas.length || !hasCuentaTxs) { widget.style.display = 'none'; return; }
+  if (!cuentas.length) { widget.style.display = 'none'; return; }
   widget.style.display = '';
-  grid.innerHTML = cuentas.map(c => {
-    const saldo = saldoCuenta(c.id, false);
-    const icon  = CUENTA_TIPO_ICONS[c.tipo] || '💼';
+
+  let totalUSD = 0, hayDato = false;
+  const cards = cuentas.map(c => {
+    const r = saldoCuentaReal(c);
+    if (r.usd != null) totalUSD += r.usd;
+    if (r.val !== 0) hayDato = true;
+    const icon = CUENTA_TIPO_ICONS[c.tipo] || '💼';
+    const main = c.moneda === 'BS' ? `Bs. ${fmt(r.val)}` : `$${fmt(r.val)}`;
+    const sub  = c.moneda === 'BS'
+      ? (r.usd != null ? `≈ $${fmt(r.usd)}` : 'sin tasa activa')
+      : '';
     return `<div class="cuenta-card" style="border-color:${c.color}33">
       <div class="cc-label">${icon} ${c.moneda}</div>
       <div class="cc-name">${c.nombre}</div>
-      <div class="cc-saldo" style="color:${c.color}">${saldo >= 0 ? '+' : ''}$${fmt(saldo)}</div>
+      <div class="cc-saldo" style="color:${c.color}">${main}</div>
+      ${sub ? `<div style="font-size:.66rem;color:var(--muted);margin-top:.15rem">${sub}</div>` : ''}
     </div>`;
   }).join('');
+
+  grid.innerHTML = cards;
+  if (totalEl) totalEl.textContent = '$' + fmt(totalUSD);
+  // Pista para configurar saldos si todo está en cero
+  let hint = document.getElementById('cuentas-hint');
+  if (!hayDato) {
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.id = 'cuentas-hint';
+      hint.style.cssText = 'font-size:.72rem;color:var(--muted);margin-top:.55rem';
+      grid.parentNode.appendChild(hint);
+    }
+    hint.innerHTML = 'Pon el saldo de cada cuenta en <b>Configuración → Mis Cuentas</b> y asigna la cuenta al registrar tus movimientos. Se actualizará solo.';
+    hint.style.display = '';
+  } else if (hint) { hint.style.display = 'none'; }
 }
 
 // Lista editable en Config
@@ -4383,17 +4440,36 @@ function renderCuentasConfigList() {
   el.innerHTML = `<div class="cuentas-grid" style="margin-top:.5rem">` +
     cuentas.map(c => {
       const icon = CUENTA_TIPO_ICONS[c.tipo] || '💼';
-      const saldoMes = saldoCuenta(c.id, false);
+      const r = saldoCuentaReal(c);
+      const main = c.moneda === 'BS' ? `Bs. ${fmt(r.val)}` : `$${fmt(r.val)}`;
+      const sub  = c.moneda === 'BS' && r.usd != null ? ` <span style="font-size:.62rem;color:var(--muted)">≈ $${fmt(r.usd)}</span>` : '';
       return `<div class="cuenta-card" style="border-color:${c.color}55">
         <button class="cc-del" onclick="delCuenta('${c.id}')" title="Eliminar">✕</button>
         <div class="cc-label">${icon} ${c.moneda} · ${c.tipo}</div>
         <div class="cc-name">${c.nombre}</div>
-        <div class="cc-saldo" style="color:${c.color};font-size:.9rem">${saldoMes >= 0 ? '+' : ''}$${fmt(saldoMes)} <span style="font-size:.65rem;color:var(--muted)">este mes</span></div>
-        <div style="width:100%;height:3px;border-radius:99px;background:${c.color}33;margin-top:.4rem">
-          <div style="height:100%;border-radius:99px;background:${c.color};width:${Math.min(Math.abs(saldoMes)/Math.max(Math.abs(saldoMes),1)*100,100)}%"></div>
-        </div>
+        <div class="cc-saldo" style="color:${c.color};font-size:.95rem">${main}${sub}</div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:.45rem;font-size:.68rem;padding:.2rem" onclick="ajustarSaldoCuenta('${c.id}')">Ajustar saldo</button>
       </div>`;
     }).join('') + `</div>`;
+}
+
+// Reconciliar: el usuario escribe el saldo REAL que tiene ahora y recalculamos
+// el saldo inicial para que el balance mostrado coincida exactamente.
+function ajustarSaldoCuenta(id) {
+  const c = (S.cuentas || []).find(x => x.id === id);
+  if (!c) return;
+  const r = saldoCuentaReal(c);
+  const unidad = c.moneda === 'BS' ? 'Bs.' : '$';
+  const txt = prompt('Saldo actual real de "' + c.nombre + '" (en ' + unidad + '):', (r.val || 0).toFixed(2));
+  if (txt === null) return;
+  const nuevo = parseFloat(String(txt).replace(',', '.'));
+  if (isNaN(nuevo)) { notify('Monto inválido'); return; }
+  // saldoInicial = saldo deseado − movimientos ya registrados
+  c.saldoInicial = nuevo - cuentaMovsSum(c);
+  persist();
+  renderCuentasConfigList();
+  renderDash();
+  notify('Saldo de "' + c.nombre + '" actualizado');
 }
 
 function addCuenta() {
@@ -4401,15 +4477,18 @@ function addCuenta() {
   const tipo   = document.getElementById('nueva-cuenta-tipo')?.value || 'otro';
   const moneda = document.getElementById('nueva-cuenta-moneda')?.value || 'USD';
   const color  = document.getElementById('nueva-cuenta-color')?.value || '#c8f060';
+  const saldoInicial = parseFloat(document.getElementById('nueva-cuenta-saldo')?.value) || 0;
   if (!nombre) { notify('Escribe un nombre para la cuenta'); return; }
   if (!S.cuentas) S.cuentas = [];
   if (S.cuentas.find(c => c.nombre.toLowerCase() === nombre.toLowerCase())) {
     notify('Ya existe una cuenta con ese nombre'); return;
   }
-  S.cuentas.push({ id: 'c' + Date.now(), nombre, tipo, moneda, color });
+  S.cuentas.push({ id: 'c' + Date.now(), nombre, tipo, moneda, color, saldoInicial });
   document.getElementById('nueva-cuenta-nombre').value = '';
+  const sEl = document.getElementById('nueva-cuenta-saldo'); if (sEl) sEl.value = '';
   persist();
   refreshCuentaSelects();
+  renderDash();
   notify('Cuenta "' + nombre + '" añadida');
 }
 
