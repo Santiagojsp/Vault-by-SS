@@ -3372,6 +3372,7 @@ function initMktDrag() {
 // ═══════════════════════════════════════════════
 function refreshAll() {
   try { autoPostRecurring(); } catch (e) { console.error(e); }
+  try { normalizeSaldosUSD(); } catch (e) { console.error(e); }
   renderDash();
   renderHeaderSummary();
   updateGFTabBadge();
@@ -4354,34 +4355,39 @@ function saldoCuenta(cuentaId, allTime = false) {
     .reduce((a, t) => a + (t.type === 'income' ? 1 : -1) * (t.amountUSD || 0), 0);
 }
 
-// Suma de movimientos de una cuenta en SU PROPIA moneda (sin saldo inicial).
+// Movimientos de una cuenta, sumados en USD (valor estable, no depende de la tasa).
 function cuentaMovsSum(c) {
-  const rate = activeRate();
   return (S.transactions || [])
     .filter(t => t.cuentaId === c.id && !t.esAhorro)
-    .reduce((a, t) => {
-      let v;
-      if (c.moneda === 'BS') {
-        v = (typeof t.amountBS === 'number' && t.amountBS != null)
-          ? t.amountBS
-          : (t.amountUSD || 0) * (t.rateUsed || rate || 0);
-      } else {
-        v = (t.amountUSD || 0);
-      }
-      return a + (t.type === 'income' ? 1 : -1) * v;
-    }, 0);
+    .reduce((a, t) => a + (t.type === 'income' ? 1 : -1) * (t.amountUSD || 0), 0);
 }
 
-// Saldo real actual de una cuenta: saldo inicial + movimientos, en su moneda,
-// más su equivalente en USD (para cuentas en Bs. se convierte a la tasa actual).
+// Saldo real actual de una cuenta, en USD neto (saldo inicial + movimientos).
+// Para cuentas en Bs. se añade el equivalente en Bs. a la tasa actual (informativo).
 function saldoCuentaReal(c) {
-  const ini = (typeof c.saldoInicial === 'number') ? c.saldoInicial : 0;
-  const val = ini + cuentaMovsSum(c);
-  if (c.moneda === 'BS') {
-    const rate = activeRate();
-    return { val, cur: 'BS', usd: rate ? val / rate : null };
-  }
-  return { val, cur: 'USD', usd: val };
+  const iniUSD = (typeof c.saldoInicial === 'number') ? c.saldoInicial : 0;
+  const usd = iniUSD + cuentaMovsSum(c);
+  const rate = activeRate();
+  return { usd, bs: (c.moneda === 'BS' && rate) ? usd * rate : null };
+}
+
+// Migración única: los saldos iniciales de cuentas en Bs. estaban guardados en
+// bolívares; los pasamos a USD (a la tasa actual) una sola vez, marcándolos.
+let _saldosNorm = false;
+function normalizeSaldosUSD() {
+  if (_saldosNorm) return;
+  const rate = activeRate();
+  let changed = false;
+  (S.cuentas || []).forEach(c => {
+    if (c._siUSD) return;
+    if (c.moneda === 'BS' && typeof c.saldoInicial === 'number' && c.saldoInicial !== 0) {
+      if (!rate) return;            // sin tasa aún: reintenta en el próximo refresh
+      c.saldoInicial = c.saldoInicial / rate;
+    }
+    c._siUSD = true; changed = true;
+  });
+  _saldosNorm = (S.cuentas || []).every(c => c._siUSD);
+  if (changed) { try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {} }
 }
 
 // Widget de saldos en Dashboard
@@ -4397,12 +4403,12 @@ function renderCuentasWidget() {
   let totalUSD = 0, hayDato = false;
   const cards = cuentas.map(c => {
     const r = saldoCuentaReal(c);
-    if (r.usd != null) totalUSD += r.usd;
-    if (r.val !== 0) hayDato = true;
+    totalUSD += r.usd;
+    if (r.usd !== 0) hayDato = true;
     const icon = CUENTA_TIPO_ICONS[c.tipo] || '💼';
-    const main = c.moneda === 'BS' ? `Bs. ${fmt(r.val)}` : `$${fmt(r.val)}`;
+    const main = `$${fmt(r.usd)}`;
     const sub  = c.moneda === 'BS'
-      ? (r.usd != null ? `≈ $${fmt(r.usd)}` : 'sin tasa activa')
+      ? (r.bs != null ? `≈ Bs. ${fmt(r.bs)}` : 'sin tasa activa')
       : '';
     return `<div class="cuenta-card" style="border-color:${c.color}33">
       <div class="cc-label">${icon} ${c.moneda}</div>
@@ -4441,8 +4447,8 @@ function renderCuentasConfigList() {
     cuentas.map(c => {
       const icon = CUENTA_TIPO_ICONS[c.tipo] || '💼';
       const r = saldoCuentaReal(c);
-      const main = c.moneda === 'BS' ? `Bs. ${fmt(r.val)}` : `$${fmt(r.val)}`;
-      const sub  = c.moneda === 'BS' && r.usd != null ? ` <span style="font-size:.62rem;color:var(--muted)">≈ $${fmt(r.usd)}</span>` : '';
+      const main = `$${fmt(r.usd)}`;
+      const sub  = c.moneda === 'BS' && r.bs != null ? ` <span style="font-size:.62rem;color:var(--muted)">≈ Bs. ${fmt(r.bs)}</span>` : '';
       return `<div class="cuenta-card" style="border-color:${c.color}55">
         <button class="cc-del" onclick="delCuenta('${c.id}')" title="Eliminar">✕</button>
         <div class="cc-label">${icon} ${c.moneda} · ${c.tipo}</div>
@@ -4453,19 +4459,30 @@ function renderCuentasConfigList() {
     }).join('') + `</div>`;
 }
 
-// Reconciliar: el usuario escribe el saldo REAL que tiene ahora y recalculamos
-// el saldo inicial para que el balance mostrado coincida exactamente.
+// Reconciliar: el usuario escribe el saldo REAL actual (en la moneda de la
+// cuenta) y recalculamos el saldo inicial para que el balance coincida exacto.
 function ajustarSaldoCuenta(id) {
   const c = (S.cuentas || []).find(x => x.id === id);
   if (!c) return;
   const r = saldoCuentaReal(c);
-  const unidad = c.moneda === 'BS' ? 'Bs.' : '$';
-  const txt = prompt('Saldo actual real de "' + c.nombre + '" (en ' + unidad + '):', (r.val || 0).toFixed(2));
-  if (txt === null) return;
-  const nuevo = parseFloat(String(txt).replace(',', '.'));
-  if (isNaN(nuevo)) { notify('Monto inválido'); return; }
-  // saldoInicial = saldo deseado − movimientos ya registrados
-  c.saldoInicial = nuevo - cuentaMovsSum(c);
+  let nuevoUSD;
+  if (c.moneda === 'BS') {
+    const rate = activeRate();
+    if (!rate) { notify('Sin tasa activa para convertir Bs.'); return; }
+    const txt = prompt('Saldo actual real de "' + c.nombre + '" en Bs.:', (r.bs || 0).toFixed(2));
+    if (txt === null) return;
+    const bs = parseFloat(String(txt).replace(',', '.'));
+    if (isNaN(bs)) { notify('Monto inválido'); return; }
+    nuevoUSD = bs / rate;
+  } else {
+    const txt = prompt('Saldo actual real de "' + c.nombre + '" en $:', (r.usd || 0).toFixed(2));
+    if (txt === null) return;
+    const usd = parseFloat(String(txt).replace(',', '.'));
+    if (isNaN(usd)) { notify('Monto inválido'); return; }
+    nuevoUSD = usd;
+  }
+  c.saldoInicial = nuevoUSD - cuentaMovsSum(c);   // en USD
+  c._siUSD = true;
   persist();
   renderCuentasConfigList();
   renderDash();
@@ -4477,13 +4494,18 @@ function addCuenta() {
   const tipo   = document.getElementById('nueva-cuenta-tipo')?.value || 'otro';
   const moneda = document.getElementById('nueva-cuenta-moneda')?.value || 'USD';
   const color  = document.getElementById('nueva-cuenta-color')?.value || '#c8f060';
-  const saldoInicial = parseFloat(document.getElementById('nueva-cuenta-saldo')?.value) || 0;
+  let saldoInicial = parseFloat(document.getElementById('nueva-cuenta-saldo')?.value) || 0;
   if (!nombre) { notify('Escribe un nombre para la cuenta'); return; }
+  if (moneda === 'BS' && saldoInicial) {
+    const rate = activeRate();
+    if (!rate) { notify('Sin tasa activa para convertir el saldo en Bs.'); return; }
+    saldoInicial = saldoInicial / rate;   // guardamos en USD
+  }
   if (!S.cuentas) S.cuentas = [];
   if (S.cuentas.find(c => c.nombre.toLowerCase() === nombre.toLowerCase())) {
     notify('Ya existe una cuenta con ese nombre'); return;
   }
-  S.cuentas.push({ id: 'c' + Date.now(), nombre, tipo, moneda, color, saldoInicial });
+  S.cuentas.push({ id: 'c' + Date.now(), nombre, tipo, moneda, color, saldoInicial, _siUSD: true });
   document.getElementById('nueva-cuenta-nombre').value = '';
   const sEl = document.getElementById('nueva-cuenta-saldo'); if (sEl) sEl.value = '';
   persist();
