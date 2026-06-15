@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vault.">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Vault.</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cG9seWdvbiBwb2ludHM9IjUwLDQgOTYsMjggOTYsNzIgNTAsOTYgNCw3MiA0LDI4IiBmaWxsPSIjMGQxMTE3IiBzdHJva2U9IiNjOGYwNjAiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjIgMzYsMjIgNTAsNjIgNjQsMjIgNzgsMjIgNTAsNjgiIGZpbGw9IiNjOGYwNjAiLz4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9Ijc0IiByPSI0IiBmaWxsPSIjYzhmMDYwIi8+Cjwvc3ZnPg==">
 <meta name="mobile-web-app-capable" content="yes">
@@ -731,6 +737,7 @@ canvas{width:100%!important;}
   <div class="tab" onclick="goTab('ahorro')">Ahorro</div>
   <div class="tab" onclick="goTab('gastos-fijos')">Gastos Fijos</div>
   <div class="tab" onclick="goTab('inversiones')">Inversiones</div>
+  <div class="tab" onclick="goTab('deudas')">Deudas</div>
 </div>
 
 <main>
@@ -772,6 +779,8 @@ canvas{width:100%!important;}
 
   <!-- KPIs históricos -->
   <div class="kpi-row" id="an-kpi" style="margin-bottom:1rem"></div>
+  <div id="inflacion-card" class="card" style="margin-bottom:1rem;display:none"></div>
+  <div id="deudas-widget" style="margin-bottom:1rem;display:none"></div>
   <div id="net-worth-card" style="margin-bottom:1rem;display:none">
     <div class="card" style="background:linear-gradient(135deg,#0d1117 0%,#111820 100%);border:1px solid rgba(200,240,96,.18)">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">
@@ -830,6 +839,17 @@ canvas{width:100%!important;}
 
 <!-- MOVIMIENTOS -->
 <div class="panel" id="panel-movimientos">
+  <div class="card" style="margin-bottom:1rem;background:linear-gradient(135deg,var(--surface2),var(--surface))">
+    <div class="ct">⚡ Registro rápido</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+      <input type="text" id="quick-add" placeholder='Ej: "almuerzo 15$"  ·  "200 bs gasolina"  ·  "sueldo +1000"'
+        style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')quickAdd()">
+      <button class="btn btn-acc" onclick="quickAdd()">Interpretar →</button>
+    </div>
+    <div id="quick-hint" style="font-size:.72rem;color:var(--muted);margin-top:.45rem">
+      Escribe en lenguaje natural y lo precargo en el formulario para que confirmes. Usa <b>$</b> o <b>bs</b> para la moneda; un <b>+</b> al inicio lo marca como ingreso.
+    </div>
+  </div>
   <div class="card" style="margin-bottom:1rem">
     <div class="ct">Registrar Movimiento</div>
     <div class="fg fg-tx-top" style="grid-template-columns:105px 1fr 145px 160px 1fr;">
@@ -981,6 +1001,20 @@ canvas{width:100%!important;}
       <button class="btn btn-acc btn-sm" onclick="exportXLSX()">⬇ Excel</button>
     </div>
   </div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Importar movimientos (CSV)</div>
+    <div class="cfg-row">
+      <div><div class="cfg-label">Cargar desde CSV</div><div class="cfg-sub">Columnas: fecha, descripción, monto, tipo, moneda, categoría</div></div>
+      <label class="btn btn-acc btn-sm" style="cursor:pointer;display:inline-flex;align-items:center">
+        Elegir CSV<input type="file" accept=".csv,text/csv" onchange="importCSV(event)" style="display:none">
+      </label>
+    </div>
+    <div class="cfg-row">
+      <div><div class="cfg-label">Plantilla de ejemplo</div><div class="cfg-sub">Descarga un CSV con el formato correcto</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="downloadCSVTemplate()">Descargar plantilla</button>
+    </div>
+    <div id="csv-import-preview" style="display:none;margin-top:.6rem"></div>
+  </div>
   <div class="card">
     <div class="ct">Respaldo de datos</div>
     <div class="cfg-row">
@@ -997,10 +1031,45 @@ canvas{width:100%!important;}
 </div>
 
 
+<!-- DEUDAS / PRÉSTAMOS -->
+<div class="panel" id="panel-deudas">
+  <div class="gf-summary" id="deudas-summary"></div>
+  <div class="card" style="margin-bottom:1rem">
+    <div class="ct">Registrar deuda o préstamo</div>
+    <div class="fg fg-tx-top" style="margin-bottom:.65rem">
+      <div><label>Tipo</label>
+        <select id="deuda-tipo">
+          <option value="debo">↑ Yo debo</option>
+          <option value="meDeben">↓ Me deben</option>
+        </select></div>
+      <div style="grid-column:span 2"><label>Persona / entidad</label>
+        <input type="text" id="deuda-persona" placeholder="Ej: Carlos, Banco, Tienda…"></div>
+      <div><label>Monto</label>
+        <input type="number" id="deuda-monto" placeholder="0.00" min="0" step="0.01"></div>
+      <div><label>Vence (opcional)</label>
+        <input type="date" id="deuda-venc"></div>
+    </div>
+    <div class="fg fg-tx-bot" style="margin-bottom:.4rem">
+      <div><label>Moneda</label>
+        <select id="deuda-moneda"><option value="USD">$ USD</option><option value="BS">Bs.</option></select></div>
+      <div style="grid-column:span 2"><label>Nota (opcional)</label>
+        <input type="text" id="deuda-nota" placeholder="Motivo, referencia…" maxlength="120"></div>
+      <div style="align-self:flex-end">
+        <button class="btn btn-acc" style="width:100%" onclick="addDeuda()">+ Registrar</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Mis deudas y préstamos</div>
+    <div id="deudas-list"></div>
+  </div>
+</div>
+
 <!-- GASTOS FIJOS -->
 <div class="panel" id="panel-gastos-fijos">
   <!-- Resumen -->
   <div class="gf-summary" id="gf-summary"></div>
+  <div id="sub-suggestions"></div>
 
   <!-- Agregar gasto fijo -->
   <div class="card" style="margin-bottom:1rem">
@@ -1037,6 +1106,9 @@ canvas{width:100%!important;}
         <button class="btn btn-acc" style="width:100%" onclick="addGastoFijo()">+ Agregar</button>
       </div>
     </div>
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--dim);cursor:pointer">
+      <input type="checkbox" id="gf-auto" style="width:auto;margin:0"> Registrar automáticamente cada mes al llegar su día de vencimiento
+    </label>
   </div>
 
   <!-- Lista del mes -->
@@ -1849,7 +1921,7 @@ function notifUndo() {
 //  TABS
 // ═══════════════════════════════════════════════
 let activeTab = 'dashboard';
-const TAB_IDS = ['dashboard', 'movimientos', 'ahorro', 'gastos-fijos', 'inversiones', 'config'];
+const TAB_IDS = ['dashboard', 'movimientos', 'ahorro', 'gastos-fijos', 'inversiones', 'deudas', 'config'];
 
 function goTab(t) {
   document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', TAB_IDS[i] === t));
@@ -1863,6 +1935,8 @@ function goTab(t) {
   if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
   if (t === 'gastos-fijos') renderGastosFijos();
   if (t === 'inversiones')  { renderInversiones(); renderWatchlistTags(); if(!Object.keys(mktData).length) refreshMarket(); }
+  if (t === 'deudas')       renderDeudas();
+  if (t === 'gastos-fijos') renderSubSuggestions();
   if (t === 'config')       { refreshCatSelects(); refreshCuentaSelects(); }
 }
 
@@ -2159,17 +2233,15 @@ function renderDash() {
         <div style="font-size:.75rem;opacity:.7">Ve a <strong>Movimientos</strong> para registrar tu primer ingreso o gasto</div>
        </div>`;
 
-  renderCatBd(txs, 'cat-bd');
-  renderChMain();
-  renderGoalProg();
-  renderDashGF();
-  renderDashAhorros();
-  renderDashInversiones();
-  renderNetWorth();
-  renderCuentasWidget();
-  renderBudgetWidget();
-  renderHeaderSummary();
-  updateGFTabBadge();
+  // Cada widget aislado: si uno falla, no tumba el resto del dashboard ni el guardado.
+  const widgets = [
+    () => renderCatBd(txs, 'cat-bd'),
+    renderChMain, renderGoalProg, renderDashGF, renderDashAhorros,
+    renderDashInversiones, renderNetWorth, renderCuentasWidget,
+    renderBudgetWidget, renderHeaderSummary, renderInflacion,
+    renderDeudasWidget, updateGFTabBadge
+  ];
+  widgets.forEach(fn => { try { fn(); } catch (e) { console.error('Widget falló:', e); } });
 }
 
 function renderCatBd(txs, id) {
@@ -2190,8 +2262,8 @@ function renderCatBd(txs, id) {
 function renderDashAhorros() {
   const el = document.getElementById('dash-ahorros');
   if (!el) return;
-  const saldo = S.ahorros ? S.ahorros.saldo : 0;
-  const movs  = S.ahorros ? S.ahorros.movimientos.length : 0;
+  const saldo = (S.ahorros && typeof S.ahorros.saldo === 'number') ? S.ahorros.saldo : 0;
+  const movs  = (S.ahorros && Array.isArray(S.ahorros.movimientos)) ? S.ahorros.movimientos.length : 0;
   el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
     <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent)">$${fmt(saldo)}</div>
     <div style="font-size:.7rem;color:var(--muted)">${movs} movimiento${movs !== 1 ? 's' : ''}</div>
@@ -2501,11 +2573,12 @@ function addGastoFijo() {
     montoUSD = monto / rate;
   }
 
-  S.gastosFijos.push({ id: Date.now(), name, montoUSD, dia, cat, ico, cur: gfCur, montoOrig: monto });
+  S.gastosFijos.push({ id: Date.now(), name, montoUSD, dia, cat, ico, cur: gfCur, montoOrig: monto, auto: !!(document.getElementById('gf-auto') && document.getElementById('gf-auto').checked) });
   persist(); renderGastosFijos(); renderDash();
   document.getElementById('gf-name').value  = '';
   document.getElementById('gf-monto').value = '';
   document.getElementById('gf-dia').value   = '';
+  const gfa = document.getElementById('gf-auto'); if (gfa) gfa.checked = false;
   notify('Gasto fijo agregado');
 }
 
@@ -3295,6 +3368,7 @@ function initMktDrag() {
 //  REFRESH
 // ═══════════════════════════════════════════════
 function refreshAll() {
+  try { autoPostRecurring(); } catch (e) { console.error(e); }
   renderDash();
   renderHeaderSummary();
   updateGFTabBadge();
@@ -3302,8 +3376,9 @@ function refreshAll() {
   const t = activeTab;
   if (t === 'movimientos')  renderMov();
   if (t === 'ahorro')       { renderAhorros(); renderMetas(); }
-  if (t === 'gastos-fijos') renderGastosFijos();
+  if (t === 'gastos-fijos') { renderGastosFijos(); renderSubSuggestions(); }
   if (t === 'inversiones')  renderInversiones();
+  if (t === 'deudas')       renderDeudas();
   if (t === 'dashboard')    renderAnalisis();
   if (t === 'config')       { refreshCatSelects(); refreshCuentaSelects(); }
 }
@@ -3966,6 +4041,37 @@ function migrateData(data) {
       t.rateUsed = null; t.rateKey = 'bcv'; t.originalCurrency = 'USD';
     }
   });
+  // Normalizar grupos de inversión legacy (sin .compras) para evitar que los
+  // renders (renderNetWorth/renderDashInversiones) lancen al añadir movimientos.
+  d.inversiones = (d.inversiones || []).map(inv => {
+    if (inv && Array.isArray(inv.compras)) return inv;
+    if (!inv) return { id: Date.now(), sym: 'N/A', name: 'N/A', tipo: 'otro', wkey: null, compras: [] };
+    return {
+      id: inv.id || Date.now(),
+      sym: inv.sym || inv.name || 'N/A',
+      name: inv.name || inv.sym || 'N/A',
+      tipo: inv.tipo || 'otro',
+      wkey: inv.wkey || null,
+      compras: [{
+        id: (inv.id || Date.now()) + 100,
+        monto: inv.invertido || 0,
+        precio: inv.actual || inv.invertido || 0,
+        units: (inv.actual && inv.invertido) ? inv.invertido / inv.actual : 0,
+        desc: inv.desc || '', fecha: inv.fecha || ''
+      }]
+    };
+  });
+  // Garantizar la estructura completa de ahorros (no solo su existencia).
+  if (!d.ahorros || typeof d.ahorros !== 'object') d.ahorros = { saldo: 0, movimientos: [] };
+  if (typeof d.ahorros.saldo !== 'number') d.ahorros.saldo = 0;
+  if (!Array.isArray(d.ahorros.movimientos)) d.ahorros.movimientos = [];
+  // Módulo de deudas/préstamos
+  if (!Array.isArray(d.deudas)) d.deudas = [];
+  d.deudas.forEach(x => { if (!Array.isArray(x.pagos)) x.pagos = []; });
+  // Historial de tasas (para el widget de inflación / poder adquisitivo)
+  if (!Array.isArray(d.rateHistory)) d.rateHistory = [];
+  // Flag de auto-registro en gastos fijos (opt-in, por defecto desactivado)
+  d.gastosFijos.forEach(g => { if (typeof g.auto !== 'boolean') g.auto = false; });
   return d;
 }
 
@@ -4153,6 +4259,7 @@ function renderNetWorth() {
   let invTotal = 0;
   if (S.inversiones && S.inversiones.length) {
     S.inversiones.forEach(grp => {
+      if (!grp || !Array.isArray(grp.compras)) return;
       const costTotal = grp.compras.reduce((a, c) => a + (c.monto || 0), 0);
       const mkt = mktData[grp.wkey];
       if (mkt && mkt.price) {
@@ -4326,6 +4433,425 @@ function refreshCuentaSelects() {
 }
 
 
+// ═══════════════════════════════════════════════
+//  REGISTRO RÁPIDO (parser por reglas, sin IA)
+// ═══════════════════════════════════════════════
+function quickAdd() {
+  const el = document.getElementById('quick-add');
+  if (!el) return;
+  let raw = (el.value || '').trim();
+  if (!raw) { notify('Escribe algo como "almuerzo 15$"'); return; }
+
+  // Tipo: '+' al inicio o palabras de ingreso → income
+  let type = 'expense';
+  const incomeWords = /\b(sueldo|salario|ingreso|cobr[eé]|pago recibido|me pagaron|freelance|venta|deposito|dep[oó]sito)\b/i;
+  if (raw.startsWith('+') || incomeWords.test(raw)) type = 'income';
+  if (raw.startsWith('-')) type = 'expense';
+  raw = raw.replace(/^[+\-]\s*/, '');
+
+  // Moneda
+  let cur = null;
+  if (/(bs\b|bolivar|bolívar|bss\b)/i.test(raw)) cur = 'BS';
+  else if (/(\$|usd|d[oó]lar)/i.test(raw)) cur = 'USD';
+
+  // Monto: primer número (acepta . o , como decimal)
+  const m = raw.match(/(\d+(?:[.,]\d+)?)/);
+  if (!m) { notify('No encontré un monto en el texto'); return; }
+  const amount = parseFloat(m[1].replace(',', '.'));
+
+  // Descripción: el texto menos el monto y los marcadores de moneda
+  let desc = raw
+    .replace(m[0], ' ')
+    .replace(/(\$|usd|d[oó]lares?|bs\b|bolivares|bolívares|bss)/ig, ' ')
+    .replace(/\s+/g, ' ').trim();
+  if (!desc) desc = type === 'income' ? 'Ingreso' : 'Gasto';
+  desc = desc.charAt(0).toUpperCase() + desc.slice(1);
+
+  // Precargar el formulario (el usuario confirma con "Agregar")
+  document.getElementById('tx-type').value = type;
+  refreshCatSelects();
+  setTxCur(cur || txCur || 'USD');
+  document.getElementById('tx-desc').value = desc;
+  document.getElementById('tx-amt').value  = amount;
+  document.getElementById('tx-date').value = new Date().toISOString().slice(0, 10);
+  updPreview();
+  el.value = '';
+  const descEl = document.getElementById('tx-desc');
+  if (descEl) { if (descEl.scrollIntoView) descEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); descEl.focus(); }
+  notify('Revisa los datos y pulsa "+ Agregar"');
+}
+
+// ═══════════════════════════════════════════════
+//  INFLACIÓN / PODER ADQUISITIVO
+// ═══════════════════════════════════════════════
+function logRateSnapshot() {
+  if (!Array.isArray(S.rateHistory)) S.rateHistory = [];
+  const today = new Date().toISOString().slice(0, 10);
+  const bcv  = (rates.bcv  && rates.bcv.promedio)  || null;
+  const usdt = (rates.usdt && rates.usdt.promedio) || null;
+  if (!bcv) return;
+  const last = S.rateHistory[S.rateHistory.length - 1];
+  if (last && last.date === today) { last.bcv = bcv; last.usdt = usdt; return; }
+  S.rateHistory.push({ date: today, bcv, usdt });
+  if (S.rateHistory.length > 120) S.rateHistory = S.rateHistory.slice(-120);
+  try { localStorage.setItem('fp_local_backup', JSON.stringify(S)); } catch {}
+}
+
+function renderInflacion() {
+  const card = document.getElementById('inflacion-card');
+  if (!card) return;
+  logRateSnapshot();
+  const hist = (S.rateHistory || []).filter(h => h.bcv);
+  const rateNow = activeRate();
+  if (!rateNow && hist.length < 2) { card.style.display = 'none'; return; }
+
+  // Punto de referencia: primera muestra del mes actual, o la más antigua disponible
+  const monthPrefix = curY + '-' + String(curM + 1).padStart(2, '0');
+  let ref = hist.find(h => h.date.startsWith(monthPrefix)) || hist[0] || null;
+  const last = hist[hist.length - 1] || null;
+  const r0 = ref ? ref.bcv : null;
+  const r1 = (last ? last.bcv : null) || rateNow;
+
+  card.style.display = '';
+  if (!r0 || !r1 || hist.length < 2 || r0 === r1) {
+    card.innerHTML = `<div class="ct">Poder adquisitivo del bolívar</div>
+      <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+        <div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--bcv)">Bs. ${fmt(r1 || 0)}</div>
+        <div style="font-size:.74rem;color:var(--muted)">por 1 USD (BCV) · acumulando historial para medir la erosión — vuelve en unos días</div>
+      </div>`;
+    return;
+  }
+
+  const erosionPct = (1 - r0 / r1) * 100;       // cuánto poder de compra perdió el Bs.
+  const devalPct   = (r1 / r0 - 1) * 100;       // cuánto subió la tasa
+  const col = erosionPct > 0 ? 'var(--expense)' : 'var(--income)';
+  card.innerHTML = `<div class="ct">Poder adquisitivo del bolívar</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.7rem;color:${col}">
+          ${erosionPct >= 0 ? '−' : '+'}${Math.abs(erosionPct).toFixed(1)}%
+        </div>
+        <div style="font-size:.72rem;color:var(--muted)">de poder de compra ${erosionPct >= 0 ? 'perdido' : 'ganado'} desde ${ref.date}</div>
+      </div>
+      <div style="text-align:right;font-size:.74rem;color:var(--dim)">
+        <div>Tasa BCV: Bs. ${fmt(r0)} → <b style="color:var(--text)">Bs. ${fmt(r1)}</b></div>
+        <div style="color:var(--muted)">la tasa subió ${devalPct.toFixed(1)}% · tus Bs. valen menos en USD</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  DEUDAS / PRÉSTAMOS
+// ═══════════════════════════════════════════════
+function deudaPagado(d)  { return (d.pagos || []).reduce((a, p) => a + (p.montoUSD || 0), 0); }
+function deudaSaldo(d)   { return Math.max((d.montoUSD || 0) - deudaPagado(d), 0); }
+
+function addDeuda() {
+  const tipo    = document.getElementById('deuda-tipo').value;
+  const persona = document.getElementById('deuda-persona').value.trim();
+  const monto   = parseFloat(document.getElementById('deuda-monto').value);
+  const moneda  = document.getElementById('deuda-moneda').value;
+  const venc    = document.getElementById('deuda-venc').value || null;
+  const nota    = document.getElementById('deuda-nota').value.trim();
+  if (!persona || !monto || monto <= 0) { notify('Persona y monto requeridos'); return; }
+
+  let montoUSD = monto;
+  if (moneda === 'BS') {
+    const rate = activeRate();
+    if (!rate) { notify('Sin tasa activa para convertir Bs.'); return; }
+    montoUSD = monto / rate;
+  }
+  if (!Array.isArray(S.deudas)) S.deudas = [];
+  S.deudas.unshift({
+    id: Date.now(), tipo, persona, montoUSD, moneda, montoOrig: monto,
+    fecha: new Date().toISOString().slice(0, 10), fechaVenc: venc, nota, pagos: []
+  });
+  persist(); renderDeudas(); renderDash();
+  document.getElementById('deuda-persona').value = '';
+  document.getElementById('deuda-monto').value   = '';
+  document.getElementById('deuda-venc').value    = '';
+  document.getElementById('deuda-nota').value    = '';
+  notify('Registrado');
+}
+
+function abonarDeuda(id) {
+  const d = (S.deudas || []).find(x => x.id === id);
+  if (!d) return;
+  const saldo = deudaSaldo(d);
+  const txt = prompt('Monto del abono en USD (saldo pendiente: $' + fmt(saldo) + '):', saldo.toFixed(2));
+  if (txt === null) return;
+  const monto = parseFloat(txt);
+  if (!monto || monto <= 0) { notify('Monto inválido'); return; }
+  d.pagos.push({ id: Date.now(), montoUSD: Math.min(monto, saldo), fecha: new Date().toISOString().slice(0, 10) });
+  persist(); renderDeudas(); renderDash();
+  notify(deudaSaldo(d) <= 0 ? '¡Deuda saldada!' : 'Abono registrado');
+}
+
+function delDeuda(id) {
+  const idx = (S.deudas || []).findIndex(x => x.id === id);
+  if (idx < 0) return;
+  const removed = S.deudas[idx];
+  S.deudas.splice(idx, 1);
+  persist(); renderDeudas(); renderDash();
+  notify('Eliminado', () => { S.deudas.splice(idx, 0, removed); persist(); renderDeudas(); renderDash(); notify('Restaurado'); });
+}
+
+function renderDeudasResumen() {
+  const list = S.deudas || [];
+  const meDeben = list.filter(d => d.tipo === 'meDeben').reduce((a, d) => a + deudaSaldo(d), 0);
+  const debo    = list.filter(d => d.tipo === 'debo').reduce((a, d) => a + deudaSaldo(d), 0);
+  return { meDeben, debo, neto: meDeben - debo };
+}
+
+function renderDeudas() {
+  const sumEl = document.getElementById('deudas-summary');
+  const listEl = document.getElementById('deudas-list');
+  if (!sumEl || !listEl) return;
+  const { meDeben, debo, neto } = renderDeudasResumen();
+  sumEl.innerHTML = `
+    <div class="kpi"><div class="kpi-label">Me deben</div><div class="kpi-value pos">$${fmt(meDeben)}</div></div>
+    <div class="kpi"><div class="kpi-label">Yo debo</div><div class="kpi-value neg">$${fmt(debo)}</div></div>
+    <div class="kpi"><div class="kpi-label">Balance neto</div><div class="kpi-value ${neto >= 0 ? 'pos' : 'neg'}">${neto >= 0 ? '+' : '−'}$${fmt(Math.abs(neto))}</div></div>`;
+
+  const list = (S.deudas || []).slice().sort((a, b) => deudaSaldo(b) - deudaSaldo(a));
+  if (!list.length) { listEl.innerHTML = '<div class="empty" style="padding:1.4rem 1rem">Sin deudas ni préstamos registrados</div>'; return; }
+  listEl.innerHTML = list.map(d => {
+    const saldo = deudaSaldo(d);
+    const pagado = deudaPagado(d);
+    const saldada = saldo <= 0;
+    const esMeDeben = d.tipo === 'meDeben';
+    const col = esMeDeben ? 'var(--income)' : 'var(--expense)';
+    const pct = d.montoUSD > 0 ? Math.min(Math.round(pagado / d.montoUSD * 100), 100) : 100;
+    const vencTxt = d.fechaVenc ? ' · vence ' + d.fechaVenc : '';
+    return `<div class="mov" style="opacity:${saldada ? .55 : 1}">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+          <span style="color:${col};font-weight:600">${esMeDeben ? '↓ Me debe' : '↑ Le debo a'} ${d.persona}</span>
+          ${saldada ? '<span style="font-size:.65rem;color:var(--income)">✓ saldada</span>' : ''}
+        </div>
+        <div style="font-size:.7rem;color:var(--muted)">$${fmt(saldo)} pendiente de $${fmt(d.montoUSD)}${vencTxt}${d.nota ? ' · ' + d.nota : ''}</div>
+        <div class="pb" style="margin-top:.35rem"><div class="pf ${pct >= 100 ? 'ok' : pct >= 40 ? 'warn' : 'danger'}" style="width:${pct}%"></div></div>
+      </div>
+      <div style="display:flex;gap:.35rem;align-items:center">
+        ${saldada ? '' : `<button class="btn btn-ghost btn-sm" onclick="abonarDeuda(${d.id})">Abonar</button>`}
+        <button class="mov-del" onclick="delDeuda(${d.id})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDeudasWidget() {
+  const el = document.getElementById('deudas-widget');
+  if (!el) return;
+  const { meDeben, debo, neto } = renderDeudasResumen();
+  if (meDeben <= 0 && debo <= 0) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.className = 'card';
+  el.innerHTML = `<div class="ct">Deudas y préstamos</div>
+    <div style="display:flex;justify-content:space-between;gap:.8rem;flex-wrap:wrap">
+      <div><div style="font-size:.68rem;color:var(--muted)">Me deben</div><div style="color:var(--income);font-weight:600">$${fmt(meDeben)}</div></div>
+      <div><div style="font-size:.68rem;color:var(--muted)">Yo debo</div><div style="color:var(--expense);font-weight:600">$${fmt(debo)}</div></div>
+      <div><div style="font-size:.68rem;color:var(--muted)">Neto</div><div style="color:${neto >= 0 ? 'var(--income)' : 'var(--expense)'};font-weight:600">${neto >= 0 ? '+' : '−'}$${fmt(Math.abs(neto))}</div></div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  GASTOS FIJOS — AUTO-REGISTRO + DETECCIÓN DE SUSCRIPCIONES
+// ═══════════════════════════════════════════════
+let _autoPostRan = false;
+function autoPostRecurring() {
+  if (_autoPostRan) return;
+  if (!S || !Array.isArray(S.gastosFijos)) return;
+  _autoPostRan = true;
+  const today = new Date().getDate();
+  let posted = 0;
+  S.gastosFijos.forEach(g => {
+    if (!g.auto) return;
+    const key = gfKey(g.id);
+    if (S.gfPagos[key]) return;
+    if ((g.dia || 1) > today) return;
+    const rate = activeRate();
+    const tx = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      type: 'expense', desc: g.name + ' (gasto fijo)',
+      date: curY + '-' + String(curM + 1).padStart(2, '0') + '-' + String(g.dia || 1).padStart(2, '0'),
+      cat: g.cat, amountUSD: g.montoUSD, amountBS: rate ? g.montoUSD * rate : null,
+      rateUsed: rate || null, rateKey: activeRateKey, originalCurrency: 'USD', esGastoFijo: true
+    };
+    S.transactions.unshift(tx);
+    S.gfPagos[key] = { txId: tx.id, fecha: new Date().toISOString(), auto: true };
+    posted++;
+  });
+  if (posted > 0) {
+    persist(); renderDash();
+    notify('Registré ' + posted + ' gasto' + (posted !== 1 ? 's' : '') + ' fijo' + (posted !== 1 ? 's' : '') + ' automáticamente');
+  }
+}
+
+function _normDesc(s) {
+  return (s || '').toLowerCase().replace(/\(gasto fijo\)/g, '').replace(/[^a-záéíóúñ0-9 ]/gi, '').replace(/\s+/g, ' ').trim();
+}
+function detectSubs() {
+  const ignored = S.subsIgnored || [];
+  const gfNames = (S.gastosFijos || []).map(g => _normDesc(g.name));
+  const groups = {};
+  (S.transactions || []).filter(t => t.type === 'expense' && !t.esGastoFijo && !t.esAhorro && !t.esInversion).forEach(t => {
+    const k = _normDesc(t.desc);
+    if (!k || k.length < 3) return;
+    (groups[k] = groups[k] || []).push(t);
+  });
+  const out = [];
+  Object.entries(groups).forEach(([k, txs]) => {
+    if (ignored.includes(k) || gfNames.includes(k)) return;
+    const months = new Set(txs.map(t => (t.date || '').slice(0, 7)));
+    if (months.size < 2) return;                      // recurre en ≥2 meses distintos
+    const amts = txs.map(t => t.amountUSD || 0);
+    const avg = amts.reduce((a, b) => a + b, 0) / amts.length;
+    if (avg <= 0) return;
+    const consistent = amts.every(a => Math.abs(a - avg) / avg <= 0.2); // montos parecidos
+    if (!consistent) return;
+    out.push({ key: k, desc: txs[0].desc, avg, cat: txs[0].cat, count: months.size });
+  });
+  return out.sort((a, b) => b.count - a.count).slice(0, 4);
+}
+function renderSubSuggestions() {
+  const el = document.getElementById('sub-suggestions');
+  if (!el) return;
+  const subs = detectSubs();
+  if (!subs.length) { el.innerHTML = ''; return; }
+  el.innerHTML = subs.map(s => `
+    <div class="card" style="margin-bottom:.7rem;border-color:var(--accent)33">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap">
+        <div style="font-size:.82rem">🔁 Cargo recurrente detectado: <b>${s.desc}</b> · ~$${fmt(s.avg)}/mes (${s.count} meses)</div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-acc btn-sm" onclick="subToGF('${s.key.replace(/'/g, "\\'")}', ${s.avg.toFixed(2)}, '${(s.cat || 'Servicios').replace(/'/g, "\\'")}', '${s.desc.replace(/'/g, "\\'")}')">Crear gasto fijo</button>
+          <button class="btn btn-ghost btn-sm" onclick="ignoreSub('${s.key.replace(/'/g, "\\'")}')">Ignorar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function subToGF(key, avg, cat, desc) {
+  document.getElementById('gf-name').value  = desc;
+  document.getElementById('gf-monto').value = avg;
+  const catSel = document.getElementById('gf-cat'); if (catSel) catSel.value = cat;
+  { const gn=document.getElementById('gf-name'); if (gn && gn.scrollIntoView) gn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  notify('Revisa y pulsa "+ Agregar" para crear el gasto fijo');
+}
+function ignoreSub(key) {
+  if (!Array.isArray(S.subsIgnored)) S.subsIgnored = [];
+  S.subsIgnored.push(key);
+  persist(); renderSubSuggestions();
+}
+
+// ═══════════════════════════════════════════════
+//  IMPORTAR CSV
+// ═══════════════════════════════════════════════
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',' || c === ';') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim() !== ''));
+}
+function parseImportDate(s) {
+  s = (s || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const dm = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/); // DD/MM/YYYY
+  if (dm) {
+    let [_, d, mo, y] = dm; if (y.length === 2) y = '20' + y;
+    return y + '-' + mo.padStart(2, '0') + '-' + d.padStart(2, '0');
+  }
+  const t = new Date(s);
+  return isNaN(t) ? new Date().toISOString().slice(0, 10) : t.toISOString().slice(0, 10);
+}
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      if (rows.length < 2) { notify('CSV vacío o sin filas'); event.target.value = ''; return; }
+      const header = rows[0].map(h => h.trim().toLowerCase());
+      const col = names => header.findIndex(h => names.some(n => h.includes(n)));
+      const iFecha = col(['fecha', 'date']);
+      const iDesc  = col(['descrip', 'concepto', 'desc']);
+      const iMonto = col(['monto', 'amount', 'importe']);
+      const iTipo  = col(['tipo', 'type']);
+      const iMon   = col(['moneda', 'currency', 'divisa']);
+      const iCat   = col(['categor', 'category', 'rubro']);
+      if (iMonto < 0 || iDesc < 0) { notify('El CSV necesita al menos columnas de descripción y monto'); event.target.value = ''; return; }
+
+      const rate = activeRate();
+      const parsed = [];
+      for (let r = 1; r < rows.length; r++) {
+        const cells = rows[r];
+        const montoRaw = (cells[iMonto] || '').replace(/[^\d.,\-]/g, '').replace(',', '.');
+        const monto = parseFloat(montoRaw);
+        if (!monto) continue;
+        const tipoCell = (iTipo >= 0 ? cells[iTipo] : '').toLowerCase();
+        let type = /ingres|income|\+|cr[eé]dito|abono/.test(tipoCell) ? 'income'
+                 : /gast|egres|expense|\-|d[eé]bito|debito/.test(tipoCell) ? 'expense'
+                 : (monto < 0 ? 'expense' : 'income');
+        const monCell = (iMon >= 0 ? cells[iMon] : '').toUpperCase();
+        const cur = /BS|VES|BOL/.test(monCell) ? 'BS' : 'USD';
+        const amt = Math.abs(monto);
+        let amountUSD = amt, amountBS = null, rateUsed = null;
+        if (cur === 'BS') { if (rate) { amountUSD = amt / rate; amountBS = amt; rateUsed = rate; } else amountUSD = amt; }
+        else if (rate) { amountBS = amt * rate; rateUsed = rate; }
+        parsed.push({
+          id: Date.now() + r, type,
+          desc: (cells[iDesc] || 'Importado').trim(),
+          date: iFecha >= 0 ? parseImportDate(cells[iFecha]) : new Date().toISOString().slice(0, 10),
+          cat: (iCat >= 0 && cells[iCat] ? cells[iCat].trim() : (type === 'income' ? 'Otro ingreso' : 'Otro gasto')),
+          note: 'Importado CSV', amountUSD, amountBS, rateUsed,
+          rateKey: activeRateKey, originalCurrency: cur, cuentaId: null
+        });
+      }
+      const prev = document.getElementById('csv-import-preview');
+      if (!parsed.length) { if (prev) { prev.style.display = 'block'; prev.innerHTML = '<span style="color:var(--expense)">No se pudo leer ninguna fila válida.</span>'; } event.target.value = ''; return; }
+      if (prev) {
+        prev.style.display = 'block';
+        prev.innerHTML = `<div style="font-size:.8rem;margin-bottom:.4rem">Se leyeron <b>${parsed.length}</b> movimientos. ¿Importar?</div>
+          <button class="btn btn-acc btn-sm" id="csv-confirm">Confirmar importación</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('csv-import-preview').style.display='none'">Cancelar</button>`;
+        document.getElementById('csv-confirm').onclick = () => {
+          parsed.forEach(t => S.transactions.unshift(t));
+          persist(); refreshAll();
+          prev.style.display = 'none';
+          notify('Importados ' + parsed.length + ' movimientos');
+        };
+      }
+    } catch (err) {
+      console.error(err); notify('Error leyendo el CSV');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+function downloadCSVTemplate() {
+  const csv = 'fecha,descripcion,monto,tipo,moneda,categoria\n2026-06-15,Salario,1000,ingreso,USD,Salario\n2026-06-16,Mercado,45.50,gasto,USD,Alimentación\n2026-06-17,Gasolina,200,gasto,BS,Transporte\n';
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'plantilla-vault.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tx-date').value = new Date().toISOString().slice(0, 10);
   document.getElementById('tx-date').addEventListener('change', () => { updPreview(); updRateStripInfo(); });
@@ -4337,6 +4863,10 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
+  // PWA: registrar service worker (ruta relativa para GitHub Pages)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW no registrado:', err));
+  }
   // Show splash immediately
   let hasToken = false;
   try { hasToken = !!localStorage.getItem('fp_gtoken'); } catch {}
